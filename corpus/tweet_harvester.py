@@ -1,47 +1,59 @@
 from tornado.httpclient import HTTPClient, HTTPRequest, HTTPError
 import simplejson
-import pymongo
 
-class TweetHarvester:
+from harvester import Harvester, HarvestingComplete
+from classification_object import ClassificationObject
+
+class TweetHarvester(Harvester):
     # Twitter info
     STREAM_URL = "https://stream.twitter.com/1/statuses/sample.json"
     TWITTER_USERNAME = "YAP_nosy"
     TWITTER_PASSWORD = "yetanotherproject"
-    tweet_count = 0
 
-    # PyMongo
-    db = pymongo.Connection()['nosy']
+    def __init__(self, workers=4):
+        super(TweetHarvester, self).__init__(workers)
+        self.tweet_count = 0
 
-    @classmethod
-    def harvest(cls):
+    def harvest(self, limit=500):
         req = HTTPRequest(
-            cls.STREAM_URL, 
+            self.STREAM_URL, 
             method="GET",
-            auth_username=cls.TWITTER_USERNAME,
-            auth_password=cls.TWITTER_PASSWORD, 
-            streaming_callback=cls.handle_tweet_stream)
+            auth_username=self.TWITTER_USERNAME,
+            auth_password=self.TWITTER_PASSWORD, 
+            streaming_callback=self.handle_stream)
 
+        self.limit = limit
         client = HTTPClient()
         client.fetch(req)
 
-    @classmethod
-    def handle_tweet_stream(cls, response):
+    def handle_stream(self, response):
         try:
             json = simplejson.loads(response)
         except ValueError:
             return
+        self.queue.put(json)
 
-        cls.insert_into_db(json)
+        self.tweet_count += 1
+        print "Received Tweet %d" % self.tweet_count
+        
+        if self.tweet_count == self.limit:
+            self.tweet_count = 0
+            raise HarvestingComplete()
 
     @classmethod
-    def insert_into_db(cls, json):
-        cls.db.tweets.insert(json)
-        cls.tweet_count += 1
-        print cls.tweet_count
+    def to_classification_object(cls, json):
+        c = ClassificationObject()
+        
+        c.source = 'twitter'
+        c.text = json['text']
+        c.created_at = json['created_at']
+
+        return c
 
 if __name__ == "__main__":
+    t = TweetHarvester()
     try:
-        TweetHarvester.harvest()
+        t.harvest()
     except HTTPError:
         print "Done!"
         
