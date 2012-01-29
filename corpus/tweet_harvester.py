@@ -5,26 +5,34 @@ from harvester import Harvester, HarvestingComplete
 from classification_object import ClassificationObject
 
 class TweetHarvester(Harvester):
-    # Twitter info
+    # Twitter sample stream
     STREAM_URL = "https://stream.twitter.com/1/statuses/sample.json"
-    TWITTER_USERNAME = "YAP_nosy"
-    TWITTER_PASSWORD = "yetanotherproject"
 
-    def __init__(self, workers=4):
+    def __init__(self, username, password, workers=2):
         super(TweetHarvester, self).__init__(workers)
+        self.username = username
+        self.password = password
         self.tweet_count = 0
 
     def harvest(self, limit=500):
         req = HTTPRequest(
             self.STREAM_URL, 
             method="GET",
-            auth_username=self.TWITTER_USERNAME,
-            auth_password=self.TWITTER_PASSWORD, 
+            auth_username=self.username,
+            auth_password=self.password,
+            request_timeout=300, 
             streaming_callback=self.handle_stream)
 
         self.limit = limit
         client = HTTPClient()
-        client.fetch(req)
+        try:
+            client.fetch(req)
+        except HTTPError as e:
+            print "HTTP Error: %s" % e.message
+        except HarvestingComplete:
+            for w in self.workers:
+                w.terminate()
+            print "Completed!"
 
     def handle_stream(self, response):
         try:
@@ -51,9 +59,18 @@ class TweetHarvester(Harvester):
         return c
 
 if __name__ == "__main__":
-    t = TweetHarvester()
-    try:
-        t.harvest()
-    except HTTPError:
-        print "Done!"
+    # Command line arguments
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='Tweet harvesting script for Nosy'
+    )
+    parser.add_argument('username', help='Your Twitter username')
+    parser.add_argument('password', help='Your Twitter password')
+    parser.add_argument('-processes', dest='workers', type=int, default=2, help='Number of worker processes')
+    parser.add_argument('-tweets', dest='tweets', type=int, default=500, help='Number of tweets to harvest')
+    args = parser.parse_args()
+
+    # Initialise Tweet Harvester
+    t = TweetHarvester(args.username, args.password, workers=args.workers)
+    t.harvest(limit=args.tweets)
         

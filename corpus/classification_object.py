@@ -36,6 +36,10 @@ class ClassificationObject(object):
         docs = cls.coll.find(query, skip=skip, limit=limit)
         return [ ClassificationObject(data) for data in docs ]
 
+    @classmethod
+    def ensure_indexes(cls):
+        cls.coll.ensure_index('keywords')
+
     def __init__(self, data=None, **kwargs):
         if data and '_id' in data: 
             self.new = False

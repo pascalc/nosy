@@ -1,6 +1,5 @@
 import pymongo
 import multiprocessing
-import Queue
 
 from classification_object import ClassificationObject
 
@@ -11,10 +10,12 @@ class Harvester(object):
     # Job queue
     queue = multiprocessing.Queue()
 
-    def __init__(self, workers):
-        for i in range(workers):
+    def __init__(self, processes):
+        self.workers = []
+        for i in range(processes):
             worker = Worker(self)
             worker.start()
+            self.workers.append(worker)
 
     @classmethod
     def to_classification_object(cls, data):
