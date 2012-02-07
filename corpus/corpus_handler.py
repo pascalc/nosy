@@ -13,8 +13,9 @@ class CorpusHandler(tornado.web.RequestHandler):
 
         query = {}
 
-        keywords = self.get_argument('keywords', "").split(',')
+        keywords = self.get_argument('keywords', None)
         if keywords:
+            keywords = map(lambda k: k.lower(), keywords.split(','))
             query = { 'keywords' : { '$in' : keywords } }
 
         results = ClassificationObject.find(
