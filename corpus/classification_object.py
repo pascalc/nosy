@@ -58,7 +58,7 @@ class ClassificationObject(object):
         del self.__dict__[name]
 
     def extract_keywords(self):
-        self.keywords = self.TOKENIZER.tokenize(self.text)
+        self.keywords = map(lambda word: word.lower(), self.TOKENIZER.tokenize(self.text))
 
     def save(self):
         self.last_modified = datetime.utcnow()
