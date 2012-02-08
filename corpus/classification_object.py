@@ -31,9 +31,9 @@ class ClassificationObject(object):
         return ClassificationObject(data)
 
     @classmethod
-    def find(cls, query=None, skip=0, limit=25):
+    def find(cls, query=None, skip=0, limit=25, **kwargs):
         if not query: query = {}
-        docs = cls.coll.find(query, skip=skip, limit=limit)
+        docs = cls.coll.find(query, skip=skip, limit=limit, **kwargs)
         return [ ClassificationObject(data) for data in docs ]
 
     @classmethod
@@ -42,16 +42,18 @@ class ClassificationObject(object):
 
     def __init__(self, data=None, **kwargs):
         if data and '_id' in data: 
-            self.new = False
+            self._new = False
             self.__dict__.update(data)
         else:
-            self.new = True
+            self._new = True
             self._id = self._generate_id()
 
         # Merge with kwargs if supplied
         self.__dict__.update(kwargs)
 
     def __setattr__(self, name, value):
+        if name.startswith('_'):
+            super(ClassificationObject, self).__setattr__(name, value)
         self.__dict__[name] = value
 
     def __delattr__(self, name):

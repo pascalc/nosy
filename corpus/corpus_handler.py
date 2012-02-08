@@ -1,6 +1,7 @@
 import tornado.ioloop
 import tornado.web
 import simplejson
+import pymongo
 
 from classification_object import ClassificationObject
 
@@ -20,7 +21,8 @@ class CorpusHandler(tornado.web.RequestHandler):
 
         results = ClassificationObject.find(
             query=query,
-            limit=count
+            limit=count,
+            sort=[("last_modified", pymongo.DESCENDING)]
         )
 
         dicts = [ c.to_dict() for c in results ]
