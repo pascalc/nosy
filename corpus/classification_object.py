@@ -42,18 +42,18 @@ class ClassificationObject(object):
 
     def __init__(self, data=None, **kwargs):
         if data and '_id' in data: 
-            self._new = False
+            self.new = False
             self.__dict__.update(data)
         else:
-            self._new = True
+            self.new = True
             self._id = self._generate_id()
 
         # Merge with kwargs if supplied
         self.__dict__.update(kwargs)
 
     def __setattr__(self, name, value):
-        if name.startswith('_'):
-            super(ClassificationObject, self).__setattr__(name, value)
+        # if name.startswith('_'):
+        #     super(ClassificationObject, self).__setattr__(name, value)
         self.__dict__[name] = value
 
     def __delattr__(self, name):
