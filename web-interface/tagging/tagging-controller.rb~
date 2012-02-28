@@ -7,7 +7,7 @@ get '/tagging?limit=:int' do
 
 end
 
-get '/tagging/edit?id=:int' do
+get '/tagging/edit?id=:intl' do
 end
 
 post '/tagging/update' do
