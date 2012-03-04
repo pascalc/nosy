@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 class ClassificationObject(object):
     # MongoDB
     COUNTER_ID = 'classification_objects'
-    db = pymongo.Connection()['nosy']
+    db = pymongo.Connection('nosy.pspace.se', 27017)
     coll = db.corpus
 
     # NLTK
