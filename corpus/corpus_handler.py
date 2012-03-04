@@ -44,10 +44,15 @@ class CorpusHandler(tornado.web.RequestHandler):
         
         tags = map( lambda t: t.lower(), tags.split(','))
 
-        c_obj = ClassificationObject.find_by_id(id)
-
         # update the tags for classification object
-        # success = c_obj.update_tags(tags)
+        c = ClassificationObject.find_by_id(id)
+        c.tags = tags
+        success = true
+        try:
+            c.save()
+        except TypeError:
+            raise
+            success = false
 
         if success:
             self.write('Successfully updated id %d with tags %s' % id, tags)
@@ -106,7 +111,7 @@ training = tornado.web.Application([
 
 # send parameter to initialise right harvester
 harvester = tornado.web.Application(
-    [r"harvest/([a-zA-Z]+)", HarvestHandler),
+    [r"harvest/twitter", HarvestHandler), # replce twitter with ([a-zA-Z])+
 ])
 
 if __name__ == "__main__":
