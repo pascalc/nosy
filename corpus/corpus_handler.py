@@ -90,7 +90,11 @@ class TrainingHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json)
 
-class HarvestHandler(tornade.web.RequestHandler):
+class HarvestHandler(tornado.web.RequestHandler):
+    def get(self, source):
+        # load source_harvester.py
+        self.write()
+
     # tweet harvester
     def post(self): # why not just get ?
         try:
@@ -102,16 +106,8 @@ class HarvestHandler(tornade.web.RequestHandler):
         t.harvest(amount)
 
 application = tornado.web.Application([
-    (r"/corpus", CorpusHandler),
-])
-
-training = tornado.web.Application([
-    (r"/training", TrainingHandler),
-])
-
-# send parameter to initialise right harvester
-harvester = tornado.web.Application(
-    [r"harvest/twitter", HarvestHandler), # replce twitter with ([a-zA-Z])+
+    (r"/corpus", CorpusHandler), (r"/training", TrainingHandler),
+    (r"harvest/(^[a-zA-Z]+$)", HarvestHandler)
 ])
 
 if __name__ == "__main__":
