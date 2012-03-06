@@ -8,8 +8,9 @@ from datetime import datetime, timedelta
 class ClassificationObject(object):
     # MongoDB
     COUNTER_ID = 'classification_objects'
-    db = pymongo.Connection('nosy.pspace.se', 27017)
-    coll = db.corpus
+    connection = pymongo.Connection('nosy.pspace.se', 27017)
+    db = connection['corpus']
+    coll = db['corpus']
 
     # NLTK
     TOKENIZER = WhitespaceTokenizer()
@@ -27,7 +28,7 @@ class ClassificationObject(object):
     def find_by_id(cls, id):
         data = cls.coll.find_one( { '_id' : long(id) } )
         if not data:
-            raise Exception('No document found')
+            return data #raise Exception('No document found')
         return ClassificationObject(data)
 
     @classmethod
