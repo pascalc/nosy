@@ -35,12 +35,12 @@ class CorpusHandler(tornado.web.RequestHandler):
         try:
             id = int(self.get_argument('id'))
         except ValueError:
-            raise e
+            raise ''
 
         try:
             tags = self.get_argument('tags')
         except ValueError:
-            raise e
+            raise ''
         
         tags = map( lambda t: t.lower(), tags.split(','))
 
@@ -51,7 +51,7 @@ class CorpusHandler(tornado.web.RequestHandler):
         try:
             c.save()
         except TypeError:
-            raise
+            raise ''
             success = false
 
         if success:
@@ -69,13 +69,13 @@ class CorpusHandler(tornado.web.RequestHandler):
 class TrainingHandler(tornado.web.RequestHandler):
     def get(self):
         try:
-            tags = self.get_argument('tags');
-        except Exception, e:
+            tags = self.get_arguments('tags');
+        except ValueError:
             raise tornado.web.HTTPError(400); # tags is required
 
         # get all tags passed
-        tags = map(lambda k: k.lower(), k.split(','))
-
+        tags = map(lambda t: t.lower(), tags.split(','))
+        
         # find all objects where all tag in tags is present and output
         query = { 'tags' : { '$in' : tags } }
         results = ClassificationObject.find(
@@ -90,24 +90,39 @@ class TrainingHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json)
 
+# curl -X POST -d "amount=10&username=joakim&password=secret" http://localhost:8888/harvest/twitter
 class HarvestHandler(tornado.web.RequestHandler):
+    '''
+    Preferrably: Call file 'source'_harvester.py
+    '''    
     def get(self, source):
-        # load source_harvester.py
-        self.write()
+        self.write('Source for data mining is %s' % source)
 
     # tweet harvester
-    def post(self): # why not just get ?
+    def post(self, source): # why not just get if only amount
         try:
             amount = int(self.get_argument('amount', 10))
         except ValueError:
             raise e
 
-        t = TweetHarvester('username', 'password', 10)
-        t.harvest(amount)
+        try:
+            username = self.get_argument('username', 'username')
+        except TypeError:
+            raise ''
+
+        try:
+            password = self.get_argument('password', 'password') 
+        except TypeError:
+            raise ''
+
+        #t = TweetHarvester(username, password, 10)
+        #t.harvest(amount)
+        self.write('Amount %d. Credentials for %s = Username: %s and password: %s \n' % (amount, source, username, password))
 
 application = tornado.web.Application([
-    (r"/corpus", CorpusHandler), (r"/training", TrainingHandler),
-    (r"harvest/(^[a-zA-Z]+$)", HarvestHandler)
+    (r"/corpus", CorpusHandler), 
+    (r"/training", TrainingHandler),
+    (r"/harvest/([a-zA-Z]+)", HarvestHandler),
 ])
 
 if __name__ == "__main__":
