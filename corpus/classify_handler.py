@@ -93,18 +93,19 @@ class AlgorithmHandler(tornado.web.RequestHandler):
         json = simplejson.dumps(algorithm)
         self.write(json)
 
-    # Test with $curl -d algorithm_settings_json.txt -X PUT -H 'Content-type:application/json' -v http://localhost:8888/algorithm/5
+    # Test with $curl -d @.algorithm_settings_json.txt -X PUT -H 'Content-type:application/json' -v http://localhost:8888/algorithm/5
     def put(self, algorithm_id):
         settings = tornado.escape.json_decode(self.request.body)
-        self.write(simplejson.dumps(settings))
         id = settings['_id']
         name = settings['name']
-
-        # for setting, value in data:
-        #     print '%s -> %d\n' % (setting, value)
+        parameters = settings['parameters']
 
         # a = self._find_algorithm_by_id(algorithm_id)
-        # a.settings = settings
+        for param, value in parameters.items():
+            #try:
+                #a.settings[param] = value
+            self.write('%s -> %f\n' % (param, value))
+
         # try:
         #     a.save()
         # except Exception, e:
@@ -112,14 +113,18 @@ class AlgorithmHandler(tornado.web.RequestHandler):
 
         self.set_status(200)
         self.set_header('Content-Type', 'application/json')
-        self.write('Id %d, name %s' % (id, name))
+        json_parameters = simplejson.dumps(parameters)
+        self.write('Updated algorithm %d with settings %s\n' % (id, json_parameters))
 
 class AlgorithmsHandler(tornado.web.RequestHandler):
     def get(self):
         '''
         Return a list of algorithms
         '''
-        algorithms = [{"_id" : 1, "data": {}}, {"_id": 2, "data": {}}]
+        algorithms = [
+            {"_id" : 1, "name":"Bayseian clasiifier", "data": {} },
+            {"_id": 2, "name":"Maximum entropy", "data": {} }
+        ]
         json = simplejson.dumps(algorithms)
 
         self.set_status(200)
