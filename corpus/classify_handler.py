@@ -4,6 +4,7 @@ import simplejson
 import pymongo
 
 from classification_object import ClassificationObject
+from algorithm_object import AlgorithmObject
 
 class ClassifyHandler(tornado.web.RequestHandler):
     # Example http://localhost:8888/classify?limit=10&skip=true leaves threshold as default
@@ -11,20 +12,20 @@ class ClassifyHandler(tornado.web.RequestHandler):
         '''
         @parameter thresholds   Threshold [0,1]
         @parameter limit        Maximum amount of classification objects
-        @parameter skip         Skip is per default True. If sent, regardless of its value, then False
+        @parameter skip         Skip is per default True. If sent, regardless of value, then False
         '''
         try:
             threshold = float(self.get_argument('threshold', 0.5))
+            _valid_threshold(threshold)
         except ValueError:
-            raise 'Digits allowed'
-        
-        if not _valid_threshold(threshold):
-            self.write('Threshold valid range is [0,1]')
+            raise tornado.web.HTTPError(500, 'Digits allowed')
+        except InvalidThreshold, e:
+            raise tornado.web.HTTPError(500, '%s' % e)
         
         try:
             limit = int(self.get_argument('limit', 10))
         except ValueError:
-            raise 'Integers allowed'
+            raise tornado.web.HTTPError(500, 'Integers allowed')
 
         skip = self.get_argument('skip', True)
         if skip != True:
@@ -38,7 +39,7 @@ class ClassifyHandler(tornado.web.RequestHandler):
         try:
             c_obj = self.get_argument('classification_object')
         except TypeError:
-            raise 'Classification objected allowed'
+            raise tornado.web.HTTPError(500, 'Classification objected allowed')
 
         # perform classification on the given object
 
@@ -62,11 +63,14 @@ class StreamHandler(tornado.web.RequestHandler):
         
         try:
             threshold = float(self.get_argument('thresholds'))
+            _valid_threshold(threshold)
         except ValueError:
             raise 'Digits allowed'
+        except InvalidThreshold, e:
+            raise tornado.web.HTTPError(500, '%s' % e)
 
-        if not _valid_threshold(threshold):
-            self.write('Threshold valid range is [0,1]')
+        # stream classification objects
+
 
 class TrainHandler(tornado.web.RequestHandler):
     def post(self):
@@ -82,25 +86,23 @@ class TestHandler(tornado.web.RequestHandler):
 class AlgorithmHandler(tornado.web.RequestHandler):
     @classmethod
     def _find_algorithm_by_id(self, id):
-        algorithm = ClassificationObject.find_by_id(id)
-        # if not c:
-        #     raise tornado.web.HTTPError(404)
+        algorithm = AlgorithmObject.find_by_id(id)
         return algorithm
 
     def get(self, algorithm_id):
-        a = self._find_algorithm_by_id(algorithm_id)
+        #a = self._find_algorithm_by_id(algorithm_id)
         algorithm = {"_id": algorithm_id, "data": {"alpha":0.2, "beta":0.7}}
         json = simplejson.dumps(algorithm)
         self.write(json)
 
-    # Test with $curl -d @.algorithm_settings_json.txt -X PUT -H 'Content-type:application/json' -v http://localhost:8888/algorithm/5
+    # Test with $curl -d @_algorithm_settings_json.txt -X PUT -H 'Content-type:application/json' -v http://localhost:8888/algorithm/5
     def put(self, algorithm_id):
         settings = tornado.escape.json_decode(self.request.body)
         id = settings['_id']
         name = settings['name']
         parameters = settings['parameters']
 
-        # a = self._find_algorithm_by_id(algorithm_id)
+        #a = self._find_algorithm_by_id(algorithm_id)
         for param, value in parameters.items():
             #try:
                 #a.settings[param] = value
@@ -122,8 +124,8 @@ class AlgorithmsHandler(tornado.web.RequestHandler):
         Return a list of algorithms
         '''
         algorithms = [
-            {"_id" : 1, "name":"Bayseian clasiifier", "data": {} },
-            {"_id": 2, "name":"Maximum entropy", "data": {} }
+            {"_id" : 1, "name":"Bayseian clasiifier", "parameters": {} },
+            {"_id": 2, "name":"Maximum entropy", "parameters": {} }
         ]
         json = simplejson.dumps(algorithms)
 
@@ -133,9 +135,11 @@ class AlgorithmsHandler(tornado.web.RequestHandler):
 
 #@globalmethod
 def _valid_threshold(threshold):
-    if threshold > 1 or threshold < 0:
-        return False
-    return True
+    if threshold > 1.0 or threshold < 0:
+        raise InvalidThreshold('Threshold valid range is [0,1]')
+
+class InvalidThreshold(Exception):
+    pass
 
 application = tornado.web.Application([
     (r"/classify", ClassifyHandler),
