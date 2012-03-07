@@ -1,7 +1,8 @@
-{"_id" : 2075, "name" : "Bayesian classifier", "created_at" : "Sun Jan 29 17:32:15 +0000 2012", "last_modified" : "ISODate(2012-01-29T17:32:15.854Z)",
-"parameters" : {
-	"alpha" : "0.1",
-	"beta" : "0.5"
-},
-    "data" : {}
+{
+	"_id" : 2075, 
+	"name" : "Bayesian classifier",
+	"parameters" : {
+		"alpha" : 0.1,
+		"beta" : 0.5
+	}
 }
