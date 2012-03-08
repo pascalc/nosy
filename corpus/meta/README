@@ -1,0 +1,9 @@
+= DESCRIPTION
+txt_converter.py reads a .txt file with two columns seperated by one or many spaces and creates a .csv with the values from the second column.
+
+It takes input_file and produces input_file.csv
+
+= USAGE
+file_to_be_converted.txt need to be in same directory as script and file_to_be_converted.csv will be written to same directory.
+
+$python txt_converter-py [file_to_be_converted]
