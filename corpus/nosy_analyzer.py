@@ -1,19 +1,25 @@
+import nltk
+
+from nltk.tokenize import WhitespaceTokenizer
+
 from classification_object import ClassificationObject
-from algorithm_object import AlgorithmObject
-from nltk.tokenizer import WhitespaceTokenizer
+#from algorithm_object import AlgorithmObject
 
 # NATK
 class NosyAnalyzerToolkit():
+	TOKENIZER = WhitespaceTokenizer()
+
 	'''
 	Performs the action defined by tokenzier on the classification objects data
 
-	@param co
-		Classification object
+	@param text
+		A string to seperate
 	@param tokenizer
 		Tokenizer to use on the data
 	'''
-	def extract_keywords(co, tokenizer):
-		co.keywords = map( lambda w: w.lower, tokenizer(co.data))
+	def seperate_words(self, text):
+		words = map( lambda w: w.lower(), self.TOKENIZER.tokenize(text))
+		return words
 
 	'''
 	Based on a dictionary with the 100 most common 'lang' words and 
@@ -26,7 +32,7 @@ class NosyAnalyzerToolkit():
 	@param lang
 		Language dictionary to use
 	'''
-	def simple_language_determiner(co, lang='en'):
+	def simple_language_detector(self, co, lang='en'):
 		counter = {
 			"words" : 0,
 			"nouns" : 0,
@@ -39,3 +45,33 @@ class NosyAnalyzerToolkit():
 		# 		word in dict[key] do ++counter[key]
 
 		# if counter.value gt threshold then co.category = lang else co.category = 'undefined'
+
+	'''
+	http://code.google.com/p/nltk/source/browse/trunk/nltk_contrib/nltk_contrib/misc/langid.py
+
+	Finds the word that does NOT EXIST in the english vocabulary. If a word does not exists,
+	the language is simply not english 
+	'''
+	def nltk_language_detector_en(self, text):
+		text = self.seperate_words(text)
+		english_vocab = set(w.lower() for w in nltk.corpus.words.words())
+		text_vocab = set(w.lower() for w in text if w.lower().isalpha())
+		output = text_vocab.difference(english_vocab)
+		lang = 'en' 
+		if len(output) == 0:
+			lang = 'undefined'
+
+		res = {
+			"language": lang,
+			"output": output
+		}
+		return res
+
+	def _prep_string(self, s):
+		return map( lambda w: w.lower(), s.split(' '))
+		
+
+nalt = NosyAnalyzerToolkit()
+s = "I am an evil monkey with an urge to take over the WORLD from the humans"
+print nalt.nltk_language_detector_en(s)
+print nalt.seperate_words(s)
