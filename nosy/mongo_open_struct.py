@@ -1,19 +1,18 @@
 import pymongo
-import random
-
-from nltk.tokenize import WhitespaceTokenizer
-
 from datetime import datetime, timedelta
 
-class ClassificationObject(object):
-    # MongoDB
-    COUNTER_ID = 'classification_objects'
-    connection = pymongo.Connection('nosy.pspace.se', 27017)
-    db = connection['corpus']
-    coll = db['corpus']
+from open_struct import OpenStruct
 
-    # NLTK
-    TOKENIZER = WhitespaceTokenizer()
+class MongoOpenStruct(OpenStruct):
+    def __init__(self, data=None, **kwargs):
+        super(MongoOpenStruct, self).__init__(data, **kwargs)
+
+    def _on_created(self, data, **kwargs):
+        if data and '_id' in data: 
+            self.new = False
+            self.__dict__.update(data)
+        else:
+            self.new = True
 
     @classmethod
     def _generate_id(cls):
@@ -29,39 +28,17 @@ class ClassificationObject(object):
         data = cls.coll.find_one( { '_id' : long(id) } )
         if not data:
             return data #raise Exception('No document found')
-        return ClassificationObject(data)
+        return cls(data)
 
     @classmethod
     def find(cls, query=None, skip=0, limit=25, **kwargs):
         if not query: query = {}
         docs = cls.coll.find(query, skip=skip, limit=limit, **kwargs)
-        return [ ClassificationObject(data) for data in docs ]
+        return [ cls(data) for data in docs ]
 
     @classmethod
     def ensure_indexes(cls):
         cls.coll.ensure_index('keywords')
-
-    def __init__(self, data=None, **kwargs):
-        if data and '_id' in data: 
-            self.new = False
-            self.__dict__.update(data)
-        else:
-            self.new = True
-            self._id = self._generate_id()
-
-        # Merge with kwargs if supplied
-        self.__dict__.update(kwargs)
-
-    def __setattr__(self, name, value):
-        # if name.startswith('_'):
-        #     super(ClassificationObject, self).__setattr__(name, value)
-        self.__dict__[name] = value
-
-    def __delattr__(self, name):
-        del self.__dict__[name]
-
-    def extract_keywords(self):
-        self.keywords = map(lambda word: word.lower(), self.TOKENIZER.tokenize(self.text))
 
     def save(self):
         self.last_modified = datetime.utcnow()
@@ -70,6 +47,7 @@ class ClassificationObject(object):
         del self.new
         
         if new:
+            self._id = self._generate_id()
             self.coll.insert(self.__dict__)
         else:
             query, action = self._update_command()
@@ -84,6 +62,3 @@ class ClassificationObject(object):
         del action['$set']['_id']
 
         return query, action
-
-    def to_dict(self):
-        return self.__dict__

@@ -1,6 +1,9 @@
 import multiprocessing
+import redis
+import simplejson
 
-from classification_object import ClassificationObject
+from nosy.classification_object import ClassificationObject
+from nosy.algorithm.lang import LanguageClassifier
 
 class HarvestingComplete(Exception):
     pass
@@ -21,9 +24,24 @@ class Harvester(object):
         return ClassificationObject(data)
 
 class Worker(multiprocessing.Process):
+    _redis = redis.Redis()
+
     def __init__(self, harvester):
         super(Worker, self).__init__()
         self.harvester = harvester
+
+    @classmethod
+    def publish(cls, class_obj):
+        message = { 'channels' : ['nosy'], 'data' : class_obj.to_dict() }
+        json = simplejson.dumps(message, default=cls._json_serializer)
+        cls._redis.publish('juggernaut', json)
+
+    @classmethod
+    def _json_serializer(cls, obj):
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        else:
+            raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
 
     def run(self):
         while(True):            
@@ -35,4 +53,8 @@ class Worker(multiprocessing.Process):
                 continue
             
             c.extract_keywords()
-            c.save()
+            
+            LanguageClassifier.classify(c)
+            if (c.tags['english'] > 0.8):
+                self.publish(c)
+                c.save()

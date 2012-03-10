@@ -3,7 +3,7 @@ import tornado.web
 import simplejson
 import pymongo
 
-from classification_object import ClassificationObject
+from nosy.lib.classification_object import ClassificationObject
 
 class CorpusHandler(tornado.web.RequestHandler):
     def get(self):
