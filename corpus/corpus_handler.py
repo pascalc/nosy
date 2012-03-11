@@ -3,12 +3,12 @@ import tornado.web
 import simplejson
 import pymongo
 
-from nosy.lib.classification_object import ClassificationObject
+from nosy.lib.model import ClassificationObject
 
 class CorpusHandler(tornado.web.RequestHandler):
     def get(self):
         try:
-            count = int(self.get_argument('count', 10))
+            limit = int(self.get_argument('limit', 10))
         except ValueError:
             raise tornado.web.HTTPError(400)
 
@@ -21,7 +21,7 @@ class CorpusHandler(tornado.web.RequestHandler):
 
         results = ClassificationObject.find(
             query=query,
-            limit=count,
+            limit=limit,
             sort=[("last_modified", pymongo.DESCENDING)]
         )
 

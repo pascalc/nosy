@@ -3,7 +3,7 @@ import tornado.web
 import simplejson
 import pymongo
 
-from classification_object import ClassificationObject
+from model import ClassificationObject
 from algorithm_object import AlgorithmObject
 
 class ClassifyHandler(tornado.web.RequestHandler):
