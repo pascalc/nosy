@@ -48,7 +48,7 @@ class TweetClassifier(TwitterHandler):
 
         return c
 
-    Only harvest if not already harvesting
+    #Only harvest if not already harvesting
     def harvest(self, limit=1000):
         _redis = ClassifierWorker._redis
         running = _redis.get('nosy:classifying') == 'true'
