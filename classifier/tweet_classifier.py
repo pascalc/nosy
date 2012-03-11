@@ -55,6 +55,8 @@ class TweetClassifier(TwitterHandler):
         running = _redis.get('nosy:classifying') == 'true'
         if running:
             print "Already running!"
+            for w in self.workers:
+                w.terminate()
             sys.exit(1)
         else:
             _redis.set('nosy:classifying', 'true')
