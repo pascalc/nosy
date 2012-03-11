@@ -2,6 +2,7 @@ import multiprocessing
 
 from nosy.stream_handler import TwitterHandler
 from nosy.model import ClassificationObject
+from nosy.algorithm.lang import LanguageClassifier
 
 class CorpusWorker(multiprocessing.Process):
     def __init__(self, harvester):
@@ -17,8 +18,9 @@ class CorpusWorker(multiprocessing.Process):
             except KeyError:
                 continue
             
-            c.extract_keywords()
-            c.save()
+            c.process()
+            if LanguageClassifier._english_score(c.text.split()) > 0.8:
+                c.save()
 
 class TweetHarvester(TwitterHandler):
     Worker = CorpusWorker
@@ -35,4 +37,3 @@ class TweetHarvester(TwitterHandler):
 
 if __name__ == "__main__":
     TweetHarvester.run()
-    

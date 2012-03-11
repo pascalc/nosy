@@ -29,8 +29,7 @@ class ClassifierWorker(multiprocessing.Process):
             except KeyError:
                 continue
             
-            c.extract_keywords()
-            
+            c.process()
             LanguageClassifier.classify(c)
             if (c.tags['english'] > 0.8):
                 self.publish(c)

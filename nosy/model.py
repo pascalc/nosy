@@ -1,17 +1,6 @@
-from nltk.tokenize import WordPunctTokenizer
 import pymongo
 
-from mongo_open_struct import MongoOpenStruct
-
-class Base(MongoOpenStruct):
-    # NLTK
-    TOKENIZER = WordPunctTokenizer()
-
-    def __init__(self, data=None, **kwargs):
-        super(Base, self).__init__(data, **kwargs)
-
-    def extract_keywords(self):
-        self.keywords = map(lambda word: word.lower(), self.TOKENIZER.tokenize(self.text))
+from base import Base
 
 class ClassificationObject(Base):
     COUNTER_ID = 'corpus'
@@ -22,6 +11,12 @@ class ClassificationObject(Base):
     def __init__(self, data=None, **kwargs):
         super(ClassificationObject, self).__init__(data, **kwargs)
         self.tags = []
+
+    @classmethod
+    def ensure_indexes(cls):
+        cls.coll.ensure_index('tags')
+        cls.coll.ensure_index('last_modified')
+        cls.coll.ensure_index('stemmed_keywords')
 
 class ClassifiedObject(Base):
     COUNTER_ID = 'classified'
@@ -39,3 +34,8 @@ class ClassifiedObject(Base):
     def __init__(self, data=None, **kwargs):
         super(ClassifiedObject, self).__init__(data, **kwargs)
         self.tags = {}
+
+    @classmethod
+    def ensure_indexes(cls):
+        cls.coll.ensure_index('tags')
+        cls.coll.ensure_index('last_modified')

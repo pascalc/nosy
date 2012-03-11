@@ -36,10 +36,6 @@ class MongoOpenStruct(OpenStruct):
         docs = cls.coll.find(query, skip=skip, limit=limit, **kwargs)
         return [ cls(data) for data in docs ]
 
-    @classmethod
-    def ensure_indexes(cls):
-        cls.coll.ensure_index('keywords')
-
     def save(self):
         self.last_modified = datetime.utcnow()
         
