@@ -1,6 +1,7 @@
 import multiprocessing
 import simplejson
 import redis
+import sys
 
 from nosy.stream_handler import TwitterHandler
 from nosy.model import ClassifiedObject
@@ -54,6 +55,7 @@ class TweetClassifier(TwitterHandler):
         running = _redis.get('nosy:classifying') == 'true'
         if running:
             print "Already running!"
+            sys.exit(1)
         else:
             _redis.set('nosy:classifying', 'true')
             super(TweetClassifier, self).harvest(limit=limit)
