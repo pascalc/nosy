@@ -22,7 +22,7 @@ class ClassifierWorker(multiprocessing.Process):
 
     def run(self):
         while(True):            
-            data = self.harvester.queue.get(True)
+            data = self.harvester.queue.get(True, timeout=120)
             
             try:
                 c = self.harvester.to_classification_object(data)
@@ -48,5 +48,16 @@ class TweetClassifier(TwitterHandler):
 
         return c
 
-if __name__ == "__main__":    
+    # Only harvest if not already harvesting
+    # def harvest(self, limit=1000):
+    #     _redis = ClassifierWorker._redis
+    #     running = _redis.get('nosy:classifying') == 'true'
+    #     if running:
+    #         print "Already running!"
+    #     else:
+    #         _redis.set('nosy:classifying', 'true')
+    #         super(TweetClassifier, self).harvest(limit=limit)
+    #         _redis.delete('nosy:classifying')    
+
+if __name__ == "__main__":
     TweetClassifier.run()

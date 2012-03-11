@@ -10,7 +10,13 @@ class ClassificationObject(Base):
 
     def __init__(self, data=None, **kwargs):
         super(ClassificationObject, self).__init__(data, **kwargs)
-        self.tags = []
+        if self.new:
+            self.tags = []
+
+    # Return all tags
+    @classmethod
+    def tags(cls):
+        return cls.coll.distinct("tags")
 
     @classmethod
     def ensure_indexes(cls):
@@ -33,7 +39,8 @@ class ClassifiedObject(Base):
 
     def __init__(self, data=None, **kwargs):
         super(ClassifiedObject, self).__init__(data, **kwargs)
-        self.tags = {}
+        if self.new:
+            self.tags = {}
 
     @classmethod
     def ensure_indexes(cls):

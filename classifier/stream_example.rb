@@ -44,10 +44,23 @@ __END__
 
   <h1>Twitter Stream</h1>
   
+  <form method="post" action="http://localhost:7777/classify/stream"> 
+    <input id="start-button" type="submit" value="Start" /> 
+  </form>
+
   <section id="stream"></section>
   
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function(){
+      // Start stream via AJAX
+      $("#start-button").click(function(e) {
+        e.preventDefault();
+        $.post("http://localhost:7777/classify/stream", function(data) {
+          console.log(data);
+        });
+      });
+
+      // Juggernaut
       var show = function(data){
         line = "<p>" + data.text + "</p>";
         $(line).hide().prependTo("#stream").fadeIn("slow");

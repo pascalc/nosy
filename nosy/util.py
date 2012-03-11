@@ -1,4 +1,3 @@
-@staticmethod
 def json_serializer(obj):
     if hasattr(obj, 'isoformat'):
         return obj.isoformat()
