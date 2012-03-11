@@ -61,7 +61,7 @@ from tweet_classifier import TweetClassifier
 
 class StreamHandler(tornado.web.RequestHandler):
     def post(self):
-        os.popen('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject')
+        os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
         json = simplejson.dumps({'success': True})
 
         self.set_header('Content-Type', 'application/json')
