@@ -48,16 +48,16 @@ class TweetClassifier(TwitterHandler):
 
         return c
 
-    # Only harvest if not already harvesting
-    # def harvest(self, limit=1000):
-    #     _redis = ClassifierWorker._redis
-    #     running = _redis.get('nosy:classifying') == 'true'
-    #     if running:
-    #         print "Already running!"
-    #     else:
-    #         _redis.set('nosy:classifying', 'true')
-    #         super(TweetClassifier, self).harvest(limit=limit)
-    #         _redis.delete('nosy:classifying')    
+    Only harvest if not already harvesting
+    def harvest(self, limit=1000):
+        _redis = ClassifierWorker._redis
+        running = _redis.get('nosy:classifying') == 'true'
+        if running:
+            print "Already running!"
+        else:
+            _redis.set('nosy:classifying', 'true')
+            super(TweetClassifier, self).harvest(limit=limit)
+            _redis.delete('nosy:classifying')    
 
 if __name__ == "__main__":
     TweetClassifier.run()

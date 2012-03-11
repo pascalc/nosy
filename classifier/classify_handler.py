@@ -2,7 +2,7 @@ import tornado.ioloop
 import tornado.web
 import simplejson
 import pymongo
-import threading
+import os
 
 from nosy.model import ClassifiedObject
 import nosy.util
@@ -59,21 +59,10 @@ from tweet_classifier import TweetClassifier
     #     else:
     #         raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
 
-class ClassifyThread(threading.Thread):
-    def run(self):
-        t = TweetClassifier(username='YAP_nosy', password='yetanotherproject', workers=1)
-        t.harvest()
-
 class StreamHandler(tornado.web.RequestHandler):
-    CLASSIFY_THREAD = ClassifyThread()
-
     def post(self):
-        if not self.CLASSIFY_THREAD.is_alive():
-            CLASSIFY_THREAD = ClassifyThread()
-            CLASSIFY_THREAD.start()
-            json = simplejson.dumps({'success': True})
-        else:
-            json = simplejson.dumps({'success': False})
+        os.popen('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject')
+        json = simplejson.dumps({'success': True})
 
         self.set_header('Content-Type', 'application/json')
         self.write(json)

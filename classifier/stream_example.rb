@@ -44,21 +44,21 @@ __END__
 
   <h1>Twitter Stream</h1>
   
-  <!-- <form method="post" action="http://localhost:7777/classify/stream"> 
+  <form method="post" action="http://nosy.pspace.se:7777/classify/stream"> 
     <input id="start-button" type="submit" value="Start" /> 
-  </form> -->
+  </form>
 
   <section id="stream"></section>
   
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function(){
       // Start stream via AJAX
-      // $("#start-button").click(function(e) {
-      //   e.preventDefault();
-      //   $.post("http://localhost:7777/classify/stream", function(data) {
-      //     console.log(data);
-      //   });
-      // });
+      $("#start-button").click(function(e) {
+        e.preventDefault();
+        $.post("http://nosy.pspace.se:7777/classify/stream", function(data) {
+          console.log(data);
+        });
+      });
 
       // Juggernaut
       var show = function(data){
