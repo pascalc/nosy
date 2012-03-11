@@ -12,7 +12,7 @@ __END__
 <head>
   <meta name="charset" content="utf-8">
   <title>Twitter Stream</title>
-  <script src="http://localhost:8080/application.js" type="text/javascript" charset="utf-8"></script>
+  <script src="http://nosy.pspace.se:8080/application.js" type="text/javascript" charset="utf-8"></script>
   <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
   
