@@ -1,11 +1,11 @@
-from nltk.tokenize import WhitespaceTokenizer
+from nltk.tokenize import WordPunctTokenizer
 import pymongo
 
 from mongo_open_struct import MongoOpenStruct
 
 class Base(MongoOpenStruct):
     # NLTK
-    TOKENIZER = WhitespaceTokenizer()
+    TOKENIZER = WordPunctTokenizer()
 
     def __init__(self, data=None, **kwargs):
         super(Base, self).__init__(data, **kwargs)
