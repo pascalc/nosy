@@ -61,7 +61,7 @@ from tweet_classifier import TweetClassifier
 
 class ClassifyThread(threading.Thread):
     def run(self):
-        t = TweetClassifier(username='YAP_nosy', password='yetanotherproject', workers=4)
+        t = TweetClassifier(username='YAP_nosy', password='yetanotherproject', workers=1)
         t.harvest()
 
 class StreamHandler(tornado.web.RequestHandler):
