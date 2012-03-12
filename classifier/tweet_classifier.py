@@ -46,6 +46,8 @@ class TweetClassifier(TwitterHandler):
         c.source = 'twitter'
         c.text = json['text']
         c.created_at = json['created_at']
+        c.author = json['user']['screen_name']
+        c.location = json['geo']
 
         return c
 
