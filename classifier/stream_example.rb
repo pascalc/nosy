@@ -4,6 +4,13 @@ get '/' do
     erb :index
 end
 
+post '/classify/stream' do
+  current_dir = File.dirname(__FILE__)
+  p = fork { system("python #{current_dir}/tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject") }
+  Process.detach(p)
+  "ok"
+end
+
 __END__
 
 @@index
@@ -44,7 +51,7 @@ __END__
 
   <h1>Twitter Stream</h1>
   
-  <form method="post" action="http://nosy.pspace.se:7777/classify/stream"> 
+  <form method="post" action="/classify/stream"> 
     <input id="start-button" type="submit" value="Start" /> 
   </form>
 
@@ -55,7 +62,7 @@ __END__
       // Start stream via AJAX
       $("#start-button").click(function(e) {
         e.preventDefault();
-        $.post("http://nosy.pspace.se:7777/classify/stream", function(data) {
+        $.post("/classify/stream", function(data) {
           console.log(data);
         });
       });
