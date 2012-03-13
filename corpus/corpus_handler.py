@@ -20,13 +20,13 @@ class CorpusHandler(tornado.web.RequestHandler):
         if keywords:
             words = map(lambda k: k.lower(), keywords.split(','))
             words = map(lambda w: ClassificationObject.stem(w), words)
-            query['stemmed_keywords'] = { '$elemMatch' : { '$in': words } }
+            query['stemmed_keywords'] = { '$all': words }
 
         # Search for tags if supplied
         tags = self.get_argument('tags', None)
         if tags:
             tags = map(lambda t: t.lower(), tags.split(','))
-            query['tags'] = { '$elemMatch' : { '$in': tags } }
+            query['tags'] = { '$all': tags }
         else:
             # Otherwise filter by tagged or untagged
             tagged = self.get_argument('tagged', False)
