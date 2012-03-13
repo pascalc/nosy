@@ -2,24 +2,51 @@ import nltk
 
 from nltk.tokenize import WhitespaceTokenizer
 
-from classification_object import ClassificationObject
+#from classification_object import ClassificationObject
 #from algorithm_object import AlgorithmObject
 
 # NATK
 class NosyAnalyzerToolkit():
 	TOKENIZER = WhitespaceTokenizer()
 
+	happy_smileys = set([
+		":)", ";)", "=)", ":-)", ";-)", ":D", ";D"
+	])
+
+	sad_smileys = set([
+		":(", ";(", "=(", ":-(", ";-("
+	])
+	
 	'''
 	Performs the action defined by tokenzier on the classification objects data
 
 	@param text
 		A string to seperate
 	@param tokenizer
-		Tokenizer to use on the data
+		Tokenizer defines how to split the string
 	'''
 	def seperate_words(self, text):
 		words = map( lambda w: w.lower(), self.TOKENIZER.tokenize(text))
 		return words
+
+	'''
+
+	'''
+	def simple_sentiment(self, text):
+		items = self.seperate_words(text)
+		res = {
+			"happy": 0,
+			"sad": 0
+		}
+		for item in items:
+			if item in self.happy_smileys: res["happy"] += 1
+			if item in self.sad_smileys: res["sad"] += 1
+		return res
+
+	def simple_sanitise(self, text):
+		#chars = '[a-zA-Z]'
+		for word in text:
+			if word.match()
 
 	'''
 	Based on a dictionary with the 100 most common 'lang' words and 
@@ -50,7 +77,10 @@ class NosyAnalyzerToolkit():
 	http://code.google.com/p/nltk/source/browse/trunk/nltk_contrib/nltk_contrib/misc/langid.py
 
 	Finds the word that does NOT EXIST in the english vocabulary. If a word does not exists,
-	the language is simply not english 
+	the language is simply not english
+
+	@param text
+		Determine language text is written in
 	'''
 	def nltk_language_detector_en(self, text):
 		text = self.seperate_words(text)
@@ -66,12 +96,12 @@ class NosyAnalyzerToolkit():
 			"output": output
 		}
 		return res
-
-	def _prep_string(self, s):
-		return map( lambda w: w.lower(), s.split(' '))
 		
 
 nalt = NosyAnalyzerToolkit()
 s = "I am an evil monkey with an urge to take over the WORLD from the humans"
+s_hard = "Haha!:) Thiswill? be hard to_ determine!!!!!..."
+sent = "I am happy :) :) :)"
 print nalt.nltk_language_detector_en(s)
-print nalt.seperate_words(s)
+print nalt.seperate_words(s_hard)
+print nalt.simple_sentiment(sent)
