@@ -51,8 +51,25 @@ __END__
 
   <h1>Twitter Stream</h1>
   
-  <form method="post" action="/classify/stream"> 
-    <input id="start-button" type="submit" value="Start" /> 
+  <form id="stream-form" method="post" action="/classify/stream">
+    <div id="language-selection">
+      <label for="lang">Select language</label>
+      <select name="lang" id="lang">
+        <option value="en">English</option>
+        <option value="se">Swedish</option>
+      </select>
+      <label for="threshold">Enter threshold (0,1)</label>
+      <input type="text" value="threshold" id="threshold" />
+    </div>
+    <div id="tag-selection">
+      <select name="tag" id="tag">
+        <option value="tag1">Tag1</option>
+        <option value="tag2">Tag2</option>
+      </select>
+      <label for="threshold">Enter threshold (0,1)</label>
+      <input type="text" value="threshold" id="threshold" />
+    </div>
+    <input id="start-button" type="submit" value="Start" />
   </form>
 
   <section id="stream"></section>
@@ -62,7 +79,10 @@ __END__
       // Start stream via AJAX
       $("#start-button").click(function(e) {
         e.preventDefault();
-        $.post("/classify/stream", function(data) {
+
+        var $form = $('form#stream-form');
+        var url = $form.attr('action');
+        $.post(url, function(data) {
           console.log(data);
         });
       });
