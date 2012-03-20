@@ -39,7 +39,7 @@ __END__
       text-align: center;
       font-size: 50px;
     }
-    
+
     #stream {
       line-height: 1.8rem;
       max-height: 800px;
@@ -47,34 +47,86 @@ __END__
     }
   </style>
 </head>
-<body>
 
+<body>
+<div id="main-column">
   <h1>Twitter Stream</h1>
   
   <form id="stream-form" method="post" action="/classify/stream">
+    
     <div id="language-selection">
       <label for="lang">Select language</label>
       <select name="lang" id="lang">
-        <option value="en">English</option>
+        <option value="en" selected="selected">English</option>
         <option value="se">Swedish</option>
       </select>
-      <label for="threshold">Enter threshold (0,1)</label>
-      <input type="text" value="threshold" id="threshold" />
+      <br/>
+      <label for="lang-threshold">Enter threshold (0,1)</label>
+      <input type="text" value="0.5" id="lang-threshold" />
+      <br/>
+      <button id="add-lang" onclick="addLang()">Add language</button>
     </div>
-    <div id="tag-selection">
+    
+    <br/>
+
+    <div id="tags-selection">
+      <label for="tag">Select tag</label>
       <select name="tag" id="tag">
         <option value="tag1">Tag1</option>
         <option value="tag2">Tag2</option>
       </select>
-      <label for="threshold">Enter threshold (0,1)</label>
-      <input type="text" value="threshold" id="threshold" />
+      <br/>
+      <label for="tag-threshold">Enter threshold (0,1)</label>
+      <input type="text" value="0.5" id="tag-threshold" />
+      <br/>
+      <button id="add-tag" onclick="addTag()">Add tag</button>
     </div>
+    <br/>
+
     <input id="start-button" type="submit" value="Start" />
   </form>
 
+  
+    <section id="selections">
+      <h2>Language</h2>
+      <div id="language"><ul></ul></div>
+      <h2>Tags</h2>
+      <div id="tags"><ul></ul></div>
   <section id="stream"></section>
   
+   
+
   <script type="text/javascript" charset="utf-8">
+    function addLang() {
+      var $selected = $('select[id="lang"]').find('option').filter(':selected');
+      var threshold = $('input[id="lang-threshold"]').val();
+      var lang = $selected.val();
+      var disp = $selected.text() + ' : ' + threshold;
+      var id = lang+':'+threshold;
+      append('language', disp, id);
+    }
+
+    function addTag() {
+      var $selected = $('select[id="tag"]').find('option').filter(':selected');
+      var threshold = $('input[id="tag-threshold"]').val();
+      var tag = $selected.val();
+      var disp = $selected.text() + ' : ' + threshold;
+      var id = tag+':'+threshold;
+      append('tags', disp, id);
+    }
+
+    function append(type, text, id) {
+      css = {
+        'margin-left':'15px',
+        'cursor': 'pointer'
+      };
+      $('#'+type).find('ul').append(
+          $('<li>').attr({'id': id}).text(text).append(
+            $('<span>').attr({'class':'remove'}).css(css).text('X')
+          )
+      );
+    }
+
     $(document).ready(function(){
       // Start stream via AJAX
       $("#start-button").click(function(e) {
@@ -82,9 +134,37 @@ __END__
 
         var $form = $('form#stream-form');
         var url = $form.attr('action');
-        $.post(url, function(data) {
+
+        var languages = [];
+        $('#language').find('li').each(function(i, elem) {
+           var tmp = $(elem).attr('id').split(':');
+           var lang = {
+            'lang': tmp[0],
+            'threshold': tmp[1]
+          };
+          languages.push(lang);
+        });
+        var tags = [];
+        $('#tags').find('li').each(function(i, elem) {
+           var tmp = $(elem).attr('id').split(':');
+           var tag = {
+            'tag':tmp[0],
+            'threshold':tmp[1]
+           };
+           tags.push(tag);
+        });
+        var data = {
+          'languages': languages,
+          'tags': tags
+        };
+        console.log(data);
+        var request = $.post(url, function(data) {
           console.log(data);
         });
+      });
+
+      $('span.remove').live('click', function() {
+        $(this).parent('li').remove();
       });
 
       // Juggernaut
