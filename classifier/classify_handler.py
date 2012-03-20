@@ -16,7 +16,7 @@ class StreamHandler(tornado.web.RequestHandler):
         except ValueError:
             raise tornado.httpserver._BadRequestException("Invalid JSON structure.")
 
-        for tag, val in tags['tags'].iteritems():
+        for tag, val in tags.iteritems():
             self.write('%s => %0.3f\n' % (tag, val))
             pass
 
