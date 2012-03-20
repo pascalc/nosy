@@ -135,30 +135,17 @@ __END__
         var $form = $('form#stream-form');
         var url = $form.attr('action');
 
-        var languages = [];
+        var tags = {};
         $('#language').find('li').each(function(i, elem) {
            var tmp = $(elem).attr('id').split(':');
-           var lang = {
-            'lang': tmp[0],
-            'threshold': tmp[1]
-          };
-          languages.push(lang);
+           tags[''+tmp[0]] = tmp[1];
         });
-        var tags = [];
         $('#tags').find('li').each(function(i, elem) {
            var tmp = $(elem).attr('id').split(':');
-           var tag = {
-            'tag':tmp[0],
-            'threshold':tmp[1]
-           };
-           tags.push(tag);
+           tags[''+tmp[0]] = tmp[1];
         });
-        var data = {
-          'languages': languages,
-          'tags': tags
-        };
-        console.log(data);
-        $.post(url, {data: data}, function(data) {
+        console.log(tags);
+        $.post(url, {tags: tags}, function(data) {
           console.log(data);
         });
       });

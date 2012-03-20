@@ -8,6 +8,24 @@ from nosy.model import ClassifiedObject
 import nosy.util
 from tweet_classifier import TweetClassifier
 
+class StreamHandler(tornado.web.RequestHandler):
+    # curl -i -X POST -d @_stream.json -H 'Content-type:application/json' -v http://localhost:7777/classify/stream
+    def post(self):
+        try:
+            tags = simplejson.loads(self.request.body) #tornado.escape.json_decode(self.request.body)
+        except ValueError:
+            raise tornado.httpserver._BadRequestException("Invalid JSON structure.")
+
+        for tag, val in tags['tags'].iteritems():
+            self.write('%s => %0.3f\n' % (tag, val))
+            pass
+
+        os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
+        json = simplejson.dumps({'success': True})
+
+        self.set_header('Content-Type', 'application/json')
+        self.write(json)
+
 # class ClassifyHandler(tornado.web.RequestHandler):
     # # Example http://localhost:8888/classify?limit=10&skip=true leaves threshold as default
     # def get(self):
@@ -58,14 +76,6 @@ from tweet_classifier import TweetClassifier
     #         return obj.isoformat()
     #     else:
     #         raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
-
-class StreamHandler(tornado.web.RequestHandler):
-    def post(self):
-        os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
-        json = simplejson.dumps({'success': True})
-
-        self.set_header('Content-Type', 'application/json')
-        self.write(json)
 
 # class TrainHandler(tornado.web.RequestHandler):
 #     def post(self):
