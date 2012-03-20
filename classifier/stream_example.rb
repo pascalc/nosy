@@ -64,55 +64,45 @@ __END__
       <label for="lang-threshold">Enter threshold (0,1)</label>
       <input type="text" value="0.5" id="lang-threshold" />
       <br/>
-      <button id="add-lang" onclick="addLang()">Add language</button>
+      <button id="lang" onclick="addTags(this)">Add language</button>
     </div>
     
     <br/>
 
     <div id="tags-selection">
-      <label for="tag">Select tag</label>
-      <select name="tag" id="tag">
+      <label for="tags">Select tag</label>
+      <select name="tags" id="tags">
         <option value="tag1">Tag1</option>
         <option value="tag2">Tag2</option>
       </select>
       <br/>
-      <label for="tag-threshold">Enter threshold (0,1)</label>
-      <input type="text" value="0.5" id="tag-threshold" />
+      <label for="tags-threshold">Enter threshold (0,1)</label>
+      <input type="text" value="0.5" id="tags-threshold" />
       <br/>
-      <button id="add-tag" onclick="addTag()">Add tag</button>
+      <button id="tags" onclick="addTags(this)">Add tag</button>
     </div>
     <br/>
 
     <input id="start-button" type="submit" value="Start" />
   </form>
 
-  
-    <section id="selections">
-      <h2>Language</h2>
-      <div id="language"><ul></ul></div>
-      <h2>Tags</h2>
-      <div id="tags"><ul></ul></div>
+  <h2>Language</h2>
+  <div id="lang-list"><ul class="tags-list"></ul></div>
+  <h2>Tags</h2>
+  <div id="tags-list"><ul class="tags-list"></ul></div>
   <section id="stream"></section>
   
    
 
   <script type="text/javascript" charset="utf-8">
-    function addLang() {
-      var $selected = $('select[id="lang"]').find('option').filter(':selected');
-      var threshold = $('input[id="lang-threshold"]').val();
+    function addTags(elem) {
+      var type = elem.id;
+      var $selected = $('select[id="'+type+'"]').find('option').filter(':selected');
+      var threshold = $('input[id="'+type+'-threshold"]').val();
       var lang = $selected.val();
       var disp = $selected.text() + ' : ' + threshold;
       var id = lang+':'+threshold;
-      append('language', disp, id);
-    }
-
-    function addTag() {
-      var $selected = $('select[id="tag"]').find('option').filter(':selected');
-      var threshold = $('input[id="tag-threshold"]').val();
-      var tag = $selected.val();
-      var disp = $selected.text() + ' : ' + threshold;
-      var id = tag+':'+threshold;
-      append('tags', disp, id);
+      append(type+'-list', disp, id);
     }
 
     function append(type, text, id) {
@@ -136,15 +126,11 @@ __END__
         var url = $form.attr('action');
 
         var tags = {};
-        $('#language').find('li').each(function(i, elem) {
+        $('ul.tags-list li').each(function(i, elem) {
            var tmp = $(elem).attr('id').split(':');
            tags[''+tmp[0]] = tmp[1];
         });
-        $('#tags').find('li').each(function(i, elem) {
-           var tmp = $(elem).attr('id').split(':');
-           tags[''+tmp[0]] = tmp[1];
-        });
-        console.log(tags);
+        console.log('Data sent to server: ', tags);
         $.post(url, {tags: tags}, function(data) {
           console.log(data);
         });
