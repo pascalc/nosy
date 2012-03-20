@@ -3,6 +3,7 @@ import tornado.web
 import simplejson
 import pymongo
 import os
+import redis
 
 from nosy.model import ClassifiedObject
 import nosy.util
@@ -11,14 +12,16 @@ from tweet_classifier import TweetClassifier
 class StreamHandler(tornado.web.RequestHandler):
     # curl -i -X POST -d @_stream.json -H 'Content-type:application/json' -v http://localhost:7777/classify/stream
     def post(self):
+        _redis = redis.Redis()
         try:
             tags = simplejson.loads(self.request.body) #tornado.escape.json_decode(self.request.body)
         except ValueError:
             raise tornado.httpserver._BadRequestException("Invalid JSON structure.")
 
-        for tag, val in tags.iteritems():
-            self.write('%s => %0.3f\n' % (tag, val))
-            pass
+        _redis.set('nosy:classifying:thresholds', simplejson.dumps(tags))
+        # for tag, val in tags.iteritems():
+        #     self.write('%s => %0.3f\n' % (tag, val))
+        #     pass
 
         os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
         json = simplejson.dumps({'success': True})
