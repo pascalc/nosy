@@ -158,7 +158,7 @@ __END__
           'tags': tags
         };
         console.log(data);
-        var request = $.post(url, function(data) {
+        $.post(url, {data: data}, function(data) {
           console.log(data);
         });
       });
