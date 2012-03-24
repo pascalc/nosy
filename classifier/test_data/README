@@ -1,0 +1,11 @@
+Test classify/(json|txt|csv)
+====
+Formats available for classification is json, txt (newline separated) and csv. The output from is an array with dicts
+Input: First line, Second line
+Output: [('text': 'first line') , ('text': 'second line')]
+
+How to test
+------
+* json:	curl -i -d  @_data.json -X POST <url>:<port>/classify/json
+* txt:	curl -i --data-binary  @_data.txt -X POST <url>:<port>/classify/txt
+* csv:	curl -i -d @_data.csv -X POST <url>:<port>/classify/csv
