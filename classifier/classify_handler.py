@@ -19,9 +19,6 @@ class StreamHandler(tornado.web.RequestHandler):
             raise tornado.httpserver._BadRequestException("Invalid JSON structure.")
 
         _redis.set('nosy:classifying:thresholds', simplejson.dumps(tags))
-        # for tag, val in tags.iteritems():
-        #     self.write('%s => %0.3f\n' % (tag, val))
-        #     pass
 
         os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
         json = simplejson.dumps({'success': True})
@@ -29,56 +26,60 @@ class StreamHandler(tornado.web.RequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.write(json)
 
-# class ClassifyHandler(tornado.web.RequestHandler):
-    # # Example http://localhost:8888/classify?limit=10&skip=true leaves threshold as default
-    # def get(self):
-    #     '''
-    #     @parameter thresholds   Threshold [0,1]
-    #     @parameter limit        Maximum amount of classification objects
-    #     @parameter skip         Skip is per default True. If sent, regardless of value, then False
-    #     '''
-    #     try:
-    #         threshold = float(self.get_argument('threshold', 0.5))
-    #         _valid_threshold(threshold)
-    #     except ValueError:
-    #         raise tornado.web.HTTPError(500, 'Digits allowed')
-    #     except InvalidThreshold, e:
-    #         raise tornado.web.HTTPError(500, '%s' % e)
+class ClassifyHandler(tornado.web.RequestHandler):
+    @classmethod
+    def parse_json(self, data):
+        json = simplejson.loads(data)
+        if not json:
+            raise ValueError
+        return json
+
+    @classmethod
+    def parse_txt(self, data):
+        DELIMITER = '\n'
+        return self.convert(data, DELIMITER)
+
+    @classmethod
+    def parse_csv(self, data):
+        DELIMITER = ','
+        return self.convert(data, DELIMITER)
+
+    @classmethod
+    def convert(self, data, delimiter):
+        print data
+        return [{'text': line} for line in map( lambda x: x.lower(), data.split(delimiter)) if line]
+
+
+    def post(self, format):
+        encoding = {
+            'json': self.parse_json,
+            'txt': self.parse_txt,
+            'csv': self.parse_csv
+        }
+
+        try:
+            fn = encoding[format]
+            print fn.__name__
+        except KeyError:
+            raise tornado.web.HTTPError(404, "Format %s not supported" % format)
         
-    #     try:
-    #         limit = int(self.get_argument('limit', 10))
-    #     except ValueError:
-    #         raise tornado.web.HTTPError(500, 'Integers allowed')
+        try:
+            data = fn(self.request.body)
+            print data
+        except ValueError:
+            raise tornado.httpserver._BadRequestException("Invalid JSON structure.")
+        
+        # _redis = redis.Redis()
 
-    #     skip = self.get_argument('skip', True)
-    #     if skip != True:
-    #         skip = False
+        # get the features and map to the id
+        # features = [ (c_id, feature_extractor(text)) for c_id, text in data['data'] ]
+        
+        # classify the text and store the result under each id
+        # classifier = _redis.get('nosy:classifier:naivebayes')
+        # result = [(c_id, type_classifier.classify(feature)) for c_id, feature in features]
 
-    #     # JSON list of matching classification objects
-    #     self.set_status(200)
-    #     self.write('Threshold %f, limit %d, skip %s' % (threshold, limit, skip))
-
-    # def post(self):
-    #     try:
-    #         c_obj = self.get_argument('classification_object')
-    #     except TypeError:
-    #         raise tornado.web.HTTPError(500, 'Classification objected allowed')
-
-    #     # perform classification on the given object
-
-    # def put(self):
-    #     '''
-    #     Returns 200 on success, 4xx on failure
-    #     '''
-
-    #     self.set_status(200)
-
-    # @classmethod
-    # def _json_serializer(cls, obj):
-    #     if hasattr(obj, 'isoformat'):
-    #         return obj.isoformat()
-    #     else:
-    #         raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
+        # self.set_header('Content-Type', 'application/json')
+        # self.write(simplejson.dumps(result))
 
 # class TrainHandler(tornado.web.RequestHandler):
 #     def post(self):
@@ -150,7 +151,7 @@ class StreamHandler(tornado.web.RequestHandler):
 #     pass
 
 application = tornado.web.Application([
-    # (r"/classify", ClassifyHandler),
+    (r"/classify/(json|csv|txt)", ClassifyHandler),
     (r"/classify/stream", StreamHandler),
     # (r"/train", TrainHandler),
     # (r"/test", TestHandler),
