@@ -70,8 +70,7 @@ __END__
       // Juggernaut
       var show = function(data){
         var authorLink = "<a href=http://twitter.com/" + data.author + "><strong>@" + data.author + ":</strong></a>";
-        var geoInfo = " <em>location: (" + data.location + ")</em>";
-        var line = "<p>" + authorLink + data.text + geoInfo + "</p>";
+        var line = "<p>" + authorLink + data.text + "</p>";
         $(line).hide().prependTo("#stream").fadeIn("slow");
       };
 
