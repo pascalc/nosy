@@ -2,40 +2,53 @@ import tornado.ioloop
 import tornado.web
 import simplejson
 import pymongo
-import os
+from datetime import datetime
 
 from nosy.model import ClassifiedObject
 import nosy.util
-from tweet_classifier import TweetClassifier
 
-# class ClassifyHandler(tornado.web.RequestHandler):
-    # # Example http://localhost:8888/classify?limit=10&skip=true leaves threshold as default
-    # def get(self):
-    #     '''
-    #     @parameter thresholds   Threshold [0,1]
-    #     @parameter limit        Maximum amount of classification objects
-    #     @parameter skip         Skip is per default True. If sent, regardless of value, then False
-    #     '''
-    #     try:
-    #         threshold = float(self.get_argument('threshold', 0.5))
-    #         _valid_threshold(threshold)
-    #     except ValueError:
-    #         raise tornado.web.HTTPError(500, 'Digits allowed')
-    #     except InvalidThreshold, e:
-    #         raise tornado.web.HTTPError(500, '%s' % e)
-        
-    #     try:
-    #         limit = int(self.get_argument('limit', 10))
-    #     except ValueError:
-    #         raise tornado.web.HTTPError(500, 'Integers allowed')
+class ClassifyHandler(tornado.web.RequestHandler):
 
-    #     skip = self.get_argument('skip', True)
-    #     if skip != True:
-    #         skip = False
+    def get(self):
+        try:
+            limit = int(self.get_argument('limit', 10))
+        except ValueError:
+            raise tornado.web.HTTPError(400)
 
-    #     # JSON list of matching classification objects
-    #     self.set_status(200)
-    #     self.write('Threshold %f, limit %d, skip %s' % (threshold, limit, skip))
+        query = {}
+
+        # Search for classified objects exceeding thresholds if supplied
+        thresholds = self.get_argument('thresholds', None)
+        if thresholds:
+            thresholds = simplejson.loads(thresholds)
+            for tag, threshold in thresholds.iteritems():
+                query['tags.' + tag] = { '$gte' : threshold }
+
+        # Limit to a daterange if supplied
+        start_time = self.get_argument('start_time', None)
+        if start_time:
+            start_time = datetime.fromtimestamp(long(start_time))
+            query['last_modified'] = {}
+            query['last_modified']['$gte'] = start_time
+
+        end_time = self.get_argument('end_time', None)
+        if end_time:
+            end_time = datetime.fromtimestamp(long(end_time))
+            if 'last_modified' not in query:
+                query['last_modified'] = {}
+            query['last_modified']['$lte'] = end_time
+
+        results = ClassifiedObject.find(
+            query=query,
+            limit=limit,
+            sort=[("last_modified", pymongo.DESCENDING)]
+        )
+
+        dicts = [ c.to_dict() for c in results ]
+        json = simplejson.dumps(dicts, default=nosy.util.json_serializer)
+
+        self.set_header("Content-Type", "application/json")
+        self.write(json)
 
     # def post(self):
     #     try:
@@ -59,13 +72,13 @@ from tweet_classifier import TweetClassifier
     #     else:
     #         raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
 
-class StreamHandler(tornado.web.RequestHandler):
-    def post(self):
-        os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
-        json = simplejson.dumps({'success': True})
+# class StreamHandler(tornado.web.RequestHandler):
+#     def post(self):
+#         os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
+#         json = simplejson.dumps({'success': True})
 
-        self.set_header('Content-Type', 'application/json')
-        self.write(json)
+#         self.set_header('Content-Type', 'application/json')
+#         self.write(json)
 
 # class TrainHandler(tornado.web.RequestHandler):
 #     def post(self):
@@ -137,8 +150,8 @@ class StreamHandler(tornado.web.RequestHandler):
 #     pass
 
 application = tornado.web.Application([
-    # (r"/classify", ClassifyHandler),
-    (r"/classify/stream", StreamHandler),
+    (r"/classify", ClassifyHandler),
+    # (r"/classify/stream", StreamHandler),
     # (r"/train", TrainHandler),
     # (r"/test", TestHandler),
     # (r"/algorithm/([0-9]+)", AlgorithmHandler),
