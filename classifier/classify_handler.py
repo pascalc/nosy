@@ -5,9 +5,11 @@ import pymongo
 import os
 import redis
 
-from nosy.model import ClassifiedObject
 import nosy.util
+
+from nosy.model import ClassifiedObject
 from tweet_classifier import TweetClassifier
+from nosy.algorithm.tags import TagsClassifier
 
 class StreamHandler(tornado.web.RequestHandler):
     # curl -i -X POST -d @_stream.json -H 'Content-type:application/json' -v http://localhost:7777/classify/stream
@@ -32,7 +34,7 @@ class ClassifyHandler(tornado.web.RequestHandler):
         json = simplejson.loads(data)
         if not json:
             raise ValueError
-        return json
+        return json['data']
 
     @classmethod
     def parse_txt(self, data):
@@ -46,7 +48,6 @@ class ClassifyHandler(tornado.web.RequestHandler):
 
     @classmethod
     def convert(self, data, delimiter):
-        print data
         return [{'text': line} for line in map( lambda x: x.lower(), data.split(delimiter)) if line]
 
 
@@ -59,27 +60,24 @@ class ClassifyHandler(tornado.web.RequestHandler):
 
         try:
             fn = encoding[format]
-            print fn.__name__
         except KeyError:
             raise tornado.web.HTTPError(404, "Format %s not supported" % format)
         
         try:
             data = fn(self.request.body)
-            print data
         except ValueError:
             raise tornado.httpserver._BadRequestException("Invalid JSON structure.")
-        
-        # _redis = redis.Redis()
 
-        # get the features and map to the id
-        # features = [ (c_id, feature_extractor(text)) for c_id, text in data['data'] ]
+        tagsClassifier = TagsClassifier()
+        result = {
+            'data' : []
+        }
+        for item in data:
+                item['label'] = tagsClassifier.classify(item['text'])
+                result['data'].append(item)
         
-        # classify the text and store the result under each id
-        # classifier = _redis.get('nosy:classifier:naivebayes')
-        # result = [(c_id, type_classifier.classify(feature)) for c_id, feature in features]
-
-        # self.set_header('Content-Type', 'application/json')
-        # self.write(simplejson.dumps(result))
+        self.set_header('Content-Type', 'application/json')
+        self.write('%s\n' % simplejson.dumps(result))
 
 # class TrainHandler(tornado.web.RequestHandler):
 #     def post(self):
