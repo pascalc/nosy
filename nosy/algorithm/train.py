@@ -34,7 +34,7 @@ class TrainClassifier():
 		cls.word_features = freq.keys()
 
 	@classmethod
-	def _feature_extractor(cls, document):
+	def feature_extractor(cls, document):
 		document = set(document)
 		features = {}
 		for word in cls.word_features:
@@ -45,11 +45,11 @@ class TrainClassifier():
 	def _get_trainingset(cls, source = 'db'):
 		data = cls._get_data(source)
 		cls._get_word_freq(data)
-		return apply_features(cls._feature_extractor, data)
+		return apply_features(cls.feature_extractor, data)
 
-	def train(self):
+	def train(self): # extend to take nltk.classify.Classifier1 or MultiClassifier1 as input
 		training_set = self._get_trainingset()
-		# classifier = naivebayesclassifier.train
+		return training_set
 
 		
 TrainClassifier().train()
