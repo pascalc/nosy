@@ -1,6 +1,8 @@
 { 
-	"text" : "First line",
-	"text" : "Second line",
-	"text" : "Third line"
+	"data" : [
+		{ "text" : "First line" },
+		{ "text" : "Second line" },
+		{ "text" : "Third line" }
+	]
 }
 
