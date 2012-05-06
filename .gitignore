@@ -1,2 +1,6 @@
 *.pyc
 build/
+nltk-cookbook
+dump
+poldata.README.2.0
+review_polarity.tar.gz
