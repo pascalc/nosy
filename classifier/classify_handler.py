@@ -4,10 +4,12 @@ import simplejson
 import pymongo
 from datetime import datetime
 
-from nosy.model import ClassifiedObject
 import nosy.util
+from nosy.model import ClassifiedObject
+from nosy.algorithm.naive_bayes import NaiveBayesClassifier
 
 class ClassifyHandler(tornado.web.RequestHandler):
+    CLASSIFIER = NaiveBayesClassifier.load()
 
     def get(self):
         try:
@@ -50,27 +52,16 @@ class ClassifyHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json)
 
-    # def post(self):
-    #     try:
-    #         c_obj = self.get_argument('classification_object')
-    #     except TypeError:
-    #         raise tornado.web.HTTPError(500, 'Classification objected allowed')
+    def post(self):
+        text = self.get_argument('text')
+        if not text:
+            raise tornado.web.HTTPError(400, 'Parameter \'text\' is required')
 
-    #     # perform classification on the given object
+        result = self.CLASSIFIER.classify(text)
+        json = simplejson.dumps(result)
 
-    # def put(self):
-    #     '''
-    #     Returns 200 on success, 4xx on failure
-    #     '''
-
-    #     self.set_status(200)
-
-    # @classmethod
-    # def _json_serializer(cls, obj):
-    #     if hasattr(obj, 'isoformat'):
-    #         return obj.isoformat()
-    #     else:
-    #         raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
+        self.set_header("Content-Type", "application/json")
+        self.write(json)        
 
 # class StreamHandler(tornado.web.RequestHandler):
 #     def post(self):
