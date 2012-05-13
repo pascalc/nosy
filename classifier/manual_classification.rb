@@ -37,10 +37,9 @@ __END__
       font-size: 50px;
     }
 
-    #stream {
-      line-height: 1.8rem;
-      max-height: 800px;
-      overflow-y: scroll;
+    #text-input {
+      width: 100%;
+      height: 50px;
     }
   </style>
 </head>
@@ -50,10 +49,10 @@ __END__
   <h1>Classify text</h1>
   
   <form id="text-form" method="post" action="/classify/text">
-    <textarea id="text-input" placeholder="Enter text to classify">
-      Enter text to classify
-    </textarea
-    
+    <label for="text-input">Enter text to classify</label>
+    <br/>
+    <textarea id="text-input"></textarea>
+    <br/>
     <input id="start-button" type="submit" value="Classify" />
   </form>
 
@@ -68,7 +67,7 @@ __END__
 
         var $form = $('form#text-form');
         var url = $form.attr('action');
-        var text = $('#text-input').val();
+        var text = $('#text-input').text();
         
         console.log('Data sent to server: ', text);
         $.post(url, {text: text}, function(result) {
