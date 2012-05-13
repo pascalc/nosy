@@ -2,6 +2,7 @@ import tornado.ioloop
 import tornado.web
 import simplejson
 import pymongo
+import redis
 from datetime import datetime
 
 import nosy.util
@@ -9,8 +10,9 @@ from nosy.model import ClassifiedObject
 from nosy.algorithm.naive_bayes import NaiveBayesClassifier
 
 class ClassifyHandler(tornado.web.RequestHandler):
-    CLASSIFIER = NaiveBayesClassifier.load()
+    #CLASSIFIER = NaiveBayesClassifier.load()
 
+    # Get ClassifiedObjects
     def get(self):
         try:
             limit = int(self.get_argument('limit', 10))
@@ -52,101 +54,45 @@ class ClassifyHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json)
 
-    def post(self):
-        text = self.get_argument('text')
-        if not text:
-            raise tornado.web.HTTPError(400, 'Parameter \'text\' is required')
+    # Classify an object
+    # def post(self):
+    #     text = self.get_argument('text')
+    #     if not text:
+    #         raise tornado.web.HTTPError(400, 'Parameter \'text\' is required')
 
-        result = self.CLASSIFIER.classify(text)
-        json = simplejson.dumps(result)
+    #     result = self.CLASSIFIER.classify_text(text)
+    #     json = simplejson.dumps(result, default=nosy.util.json_serializer)
 
+    #     self.set_header("Content-Type", "application/json")
+    #     self.write(json)
+
+class ThresholdsHandler(tornado.web.RequestHandler):
+    _redis = redis.Redis()
+    THRESHOLDS_KEY = 'nosy:classify:thresholds'
+
+    # Get current thresholds
+    def get(self):
+        thresholds = self._redis.hgetall(self.THRESHOLDS_KEY)
+        thresholds = { k: float(v) for k, v in thresholds.iteritems() }
+        self.write(simplejson.dumps(thresholds, default=nosy.util.json_serializer))
+
+    # Edit streaming thresholds
+    def put(self):
+        try:
+            body = simplejson.loads(self.request.body)
+            thresholds = body['thresholds']
+            assert isinstance(thresholds, dict)
+        except:
+            raise tornado.web.HTTPError(400, 'Parameter \'thresholds\' needs to be valid JSON')
+
+        self._redis.hmset(self.THRESHOLDS_KEY, thresholds)
+        
         self.set_header("Content-Type", "application/json")
-        self.write(json)        
-
-# class StreamHandler(tornado.web.RequestHandler):
-#     def post(self):
-#         os.system('python tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject &')
-#         json = simplejson.dumps({'success': True})
-
-#         self.set_header('Content-Type', 'application/json')
-#         self.write(json)
-
-# class TrainHandler(tornado.web.RequestHandler):
-#     def post(self):
-#         try:
-#             source_url = self.get_argument('source_url')
-#         except TypeError:
-#             raise 'Could not find source url'
-
-# class TestHandler(tornado.web.RequestHandler):
-#     def get(self):
-#         self.write('Test handler')
-
-# class AlgorithmHandler(tornado.web.RequestHandler):
-#     @classmethod
-#     def _find_algorithm_by_id(self, id):
-#         algorithm = AlgorithmObject.find_by_id(id)
-#         return algorithm
-
-#     def get(self, algorithm_id):
-#         #a = self._find_algorithm_by_id(algorithm_id)
-#         algorithm = {"_id": algorithm_id, "data": {"alpha":0.2, "beta":0.7}}
-#         json = simplejson.dumps(algorithm)
-#         self.write(json)
-
-#     # Test with $curl -d @_algorithm_settings_json.txt -X PUT -H 'Content-type:application/json' -v http://localhost:8888/algorithm/5
-#     def put(self, algorithm_id):
-#         settings = tornado.escape.json_decode(self.request.body)
-#         id = settings['_id']
-#         name = settings['name']
-#         parameters = settings['parameters']
-
-#         #a = self._find_algorithm_by_id(algorithm_id)
-#         for param, value in parameters.items():
-#             #try:
-#                 #a.settings[param] = value
-#             self.write('%s -> %f\n' % (param, value))
-
-#         # try:
-#         #     a.save()
-#         # except Exception, e:
-#         #     raise tornado.web.HTTPError(500)
-
-#         self.set_status(200)
-#         self.set_header('Content-Type', 'application/json')
-#         json_parameters = simplejson.dumps(parameters)
-#         self.write('Updated algorithm %d with settings %s\n' % (id, json_parameters))
-
-# class AlgorithmsHandler(tornado.web.RequestHandler):
-#     def get(self):
-#         '''
-#         Return a list of algorithms
-#         '''
-#         algorithms = [
-#             {"_id" : 1, "name":"Bayseian clasiifier", "parameters": {} },
-#             {"_id": 2, "name":"Maximum entropy", "parameters": {} }
-#         ]
-#         json = simplejson.dumps(algorithms)
-
-#         self.set_status(200)
-#         self.set_header('Content-Type', 'application/json')
-#         self.write(json)
-
-# #@globalmethod
-# def _valid_threshold(threshold):
-#     if threshold > 1.0 or threshold < 0:
-#         raise InvalidThreshold('Threshold valid range is [0,1]')
-
-# class InvalidThreshold(Exception):
-#     pass
+        self.write(simplejson.dumps({'success' : True}))
 
 application = tornado.web.Application([
     (r"/classify", ClassifyHandler),
-    # (r"/classify/stream", StreamHandler),
-    # (r"/train", TrainHandler),
-    # (r"/test", TestHandler),
-    # (r"/algorithm/([0-9]+)", AlgorithmHandler),
-    # (r"/algorithms", AlgorithmsHandler),
+    (r"/classify/thresholds", ThresholdsHandler),
 ])
 
 if __name__ == "__main__":

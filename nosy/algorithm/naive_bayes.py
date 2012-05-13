@@ -89,16 +89,21 @@ class NaiveBayesClassifier(PersistentClassifier):
 
     # CLASSIFYING
 
-    def classify(self, text):
+    def classify(self, c):
+        if not hasattr(self, 'classifiers'): self.train()
+
+        feat = self._to_feature(c)
+        result = {}
+        for tag, classifier in self.classifiers.iteritems():
+            result[tag] = classifier.prob_classify(feat).prob(tag)
+        c.tags.update(result)
+
+    def classify_text(self, text):
         if not hasattr(self, 'classifiers'): self.train()
 
         # Extract keywords like we do when learning
         c = ClassificationObject()
         c.text = text
         c.process()
-        feat = self._to_feature(c)
         
-        result = {}
-        for tag, classifier in self.classifiers.iteritems():
-            result[tag] = classifier.prob_classify(feat).prob(tag)
-        return result
+        return self.classify(c)

@@ -4,13 +4,6 @@ get '/' do
     erb :index
 end
 
-post '/classify/stream' do
-  current_dir = File.dirname(__FILE__)
-  p = fork { system("python #{current_dir}/tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject") }
-  Process.detach(p)
-  "ok"
-end
-
 __END__
 
 @@index
@@ -21,7 +14,6 @@ __END__
   <title>Twitter Stream</title>
   <script src="http://nosy.pspace.se:8080/application.js" type="text/javascript" charset="utf-8"></script>
   <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-
   
   <style type="text/css" media="screen">
     body {
@@ -50,23 +42,11 @@ __END__
 <body>
 
   <h1>Twitter Stream</h1>
-  
-  <form method="post" action="/classify/stream"> 
-    <input id="start-button" type="submit" value="Start" /> 
-  </form>
 
   <section id="stream"></section>
   
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function(){
-      // Start stream via AJAX
-      $("#start-button").click(function(e) {
-        e.preventDefault();
-        $.post("/classify/stream", function(data) {
-          console.log(data);
-        });
-      });
-
       // Juggernaut
       var show = function(data){
         var authorLink = "<a href=http://twitter.com/" + data.author + "><strong>@" + data.author + ":</strong></a>";
