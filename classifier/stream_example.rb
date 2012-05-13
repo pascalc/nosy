@@ -14,7 +14,7 @@ __END__
   <title>Twitter Stream</title>
   <script src="http://nosy.pspace.se:8080/application.js" type="text/javascript" charset="utf-8"></script>
   <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-  
+
   <style type="text/css" media="screen">
     body {
         font-size: 18px;
@@ -62,7 +62,7 @@ __END__
 
       jug.subscribe("nosy", function(data){
         show(data);
-        console.log("Got: " + data);
+        console.log(data);
       });
     });
   </script>
