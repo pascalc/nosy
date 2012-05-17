@@ -49,7 +49,7 @@ class ClassifierWorker(multiprocessing.Process):
     def run(self):
         while(True):
             data = None
-            if (random.random() < 0.99):
+            if (random.random() < 0.9):
                 print "Real!"
                 data = self.harvester.queue.get(True, timeout=120)
             else:
