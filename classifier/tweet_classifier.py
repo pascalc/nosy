@@ -18,14 +18,11 @@ class ClassifierWorker(multiprocessing.Process):
     THRESHOLDS = { k: float(v) for k,v in _redis.hgetall(THRESHOLDS_KEY).iteritems() }
     NAIVE_BAYES = NaiveBayesClassifier.load()
 
-    MOVIE_EXAMPLES = [
-        {
-            'text' : 'That movie had a great plot and dialogue',
-            'created_at' : datetime.utcnow().isoformat(),
-            'user' : { 'screen_name' : 'EXAMPLE' },
-            'geo' : None
-        }
-    ]
+    # Load example tweets about movies
+    MOVIE_EXAMPLE_FILE = '../flicktweet-scraper/movie-tweets.json'
+    MOVIE_EXAMPLES = None
+    with open(MOVIE_EXAMPLE_FILE) as f:
+        MOVIE_EXAMPLES = simplejson.load(f)
     MOVIE_EXAMPLE_ITERATOR = itertools.cycle(MOVIE_EXAMPLES)
 
     @classmethod
