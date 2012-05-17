@@ -31,25 +31,24 @@ class TwitterHandler(StreamHandler):
         self.password = password
         self.tweet_count = 0
 
-    def harvest(self, limit=1000):
+    def harvest(self):
         req = HTTPRequest(
             self.STREAM_URL, 
             method="GET",
             auth_username=self.username,
             auth_password=self.password,
-            request_timeout=999999999999,
+            request_timeout=30,
             streaming_callback=self.handle_stream)
 
-        self.limit = limit
         client = HTTPClient()
         try:
             client.fetch(req)
         except HTTPError as e:
             print "HTTP Error: %s" % e.message
-        except HarvestingComplete:
-            for w in self.workers:
-                w.terminate()
-            print "Completed!"
+
+        for w in self.workers:
+            w.terminate()
+        print "Completed!"
 
     def handle_stream(self, response):
         try:
@@ -60,10 +59,6 @@ class TwitterHandler(StreamHandler):
 
         self.tweet_count += 1
         print "Received Tweet %d" % self.tweet_count
-        
-        if self.tweet_count == self.limit:
-            self.tweet_count = 0
-            raise HarvestingComplete()
 
     @classmethod
     def parse_args(cls):
@@ -73,7 +68,6 @@ class TwitterHandler(StreamHandler):
         parser.add_argument('username', help='Your Twitter username')
         parser.add_argument('password', help='Your Twitter password')
         parser.add_argument('-processes', dest='workers', type=int, default=2, help='Number of worker processes')
-        parser.add_argument('-tweets', dest='tweets', type=int, default=500, help='Number of tweets to harvest')
         
         return parser.parse_args()
 
@@ -81,4 +75,4 @@ class TwitterHandler(StreamHandler):
     def run(cls):
         args = cls.parse_args()
         t = cls(args.username, args.password, workers=args.workers)
-        t.harvest(limit=args.tweets)
+        t.harvest()
