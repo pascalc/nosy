@@ -3,6 +3,8 @@ import simplejson
 import redis
 import random
 import sys
+from datetime import datetime
+import itertools
 
 from nosy.model import ClassifiedObject
 import nosy.util
@@ -15,6 +17,20 @@ class ClassifierWorker(multiprocessing.Process):
     THRESHOLDS_KEY = 'nosy:classify:thresholds'
     THRESHOLDS = { k: float(v) for k,v in _redis.hgetall(THRESHOLDS_KEY).iteritems() }
     NAIVE_BAYES = NaiveBayesClassifier.load()
+
+    MOVIE_EXAMPLES = [
+        {
+            'text' : 'That movie had a great plot and dialogue',
+            'created_at' : datetime.utcnow().isoformat(),
+            'user' : { 'screen_name' : 'EXAMPLE' },
+            'geo' : None
+        }
+    ]
+    MOVIE_EXAMPLE_ITERATOR = itertools.cycle(MOVIE_EXAMPLES)
+
+    @classmethod
+    def example_movie_tweet(cls):
+        return cls.MOVIE_EXAMPLE_ITERATOR.next()
 
     @classmethod
     def exceeds_thresholds(cls, c):
@@ -34,12 +50,18 @@ class ClassifierWorker(multiprocessing.Process):
         cls._redis.publish('juggernaut', json)
 
     def run(self):
-        while(True):            
-            data = self.harvester.queue.get(True, timeout=120)
-
+        while(True):
+            data = None
+            if (random.random() < 0.99):
+                print "Real!"
+                data = self.harvester.queue.get(True, timeout=120)
+            else:
+                print "Example!"
+                data = self.example_movie_tweet()
+            
             try:
                 c = self.harvester.to_classification_object(data)
-            except KeyError:
+            except KeyError as e:
                 continue
             
             c.process()
