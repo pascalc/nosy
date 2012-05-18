@@ -74,15 +74,15 @@ class CorpusHandler(tornado.web.RequestHandler):
         try:
             doc_id = int(doc_id)
         except ValueError:
-            raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(400, "Expecting integer value")
 
         c = ClassificationObject.find_by_id(doc_id)
         if c:
             res = c.remove({ "_id" : doc_id})
         else:
-            raise tornado.web.HTTPError(404)
+            raise tornado.web.HTTPError(404, "Could not find document with id %i" % doc_id)
 
-        raise tornado.web.HTTPError(200)
+        raise tornado.web.HTTPError(200, "Document id %i successfully deleted" % doc_id)
 
 
 class TagsHandler(tornado.web.RequestHandler):
