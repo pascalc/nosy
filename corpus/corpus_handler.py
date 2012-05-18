@@ -47,12 +47,12 @@ class CorpusHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json)
 
-    #  curl -X PUT -d "tags=funny" http://localhost:8888/corpus/<id>
-    def put(self, doc_id):
+    #  curl -X PUT -d "tags=funny" http://localhost:8888/corpus?id=<id>
+    def put(self):
         try:
-            doc_id = int(doc_id)
+            doc_id = int(self.get_argument('id'))
         except ValueError:
-            raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(400, "Expecting integer value")
 
         tags = self.get_argument('tags', None)
         if tags:
@@ -64,9 +64,10 @@ class CorpusHandler(tornado.web.RequestHandler):
             c.tags = tags
             c.save()
         else:
-            raise tornado.web.HTTPError(404)
+            raise tornado.web.HTTPError(404, "Could not find document with id %i" % doc_id)
 
-        json = simplejson.dumps({'success': True})
+        json = simplejson.dumps({'success': True, 'message' : "Updated document with id %i" % doc_id,
+            'tags' : tags})
         self.set_header('Content-Type', 'application/json')
         self.write(json)
 
