@@ -70,9 +70,9 @@ class CorpusHandler(tornado.web.RequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.write(json)
 
-    def delete(self, doc_id):
+    def delete(self):
         try:
-            doc_id = int(doc_id)
+            doc_id = int(self.get_argument('id'))
         except ValueError:
             raise tornado.web.HTTPError(400, "Expecting integer value")
 
@@ -84,7 +84,6 @@ class CorpusHandler(tornado.web.RequestHandler):
 
         raise tornado.web.HTTPError(200, "Document id %i successfully deleted" % doc_id)
 
-
 class TagsHandler(tornado.web.RequestHandler):
     def get(self):
         tags = ClassificationObject.tags()
@@ -95,7 +94,6 @@ class TagsHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r'/corpus', CorpusHandler), 
-    (r'/corpus/([0-9]+)', CorpusHandler),
     (r'/corpus/tags', TagsHandler),
 ])
 
