@@ -48,6 +48,7 @@ class CorpusHandler(tornado.web.RequestHandler):
         self.write(json)
 
     #  curl -X PUT -d "tags=funny" http://localhost:8888/corpus?id=<id>
+    # or curl -X PUT "http://localhost:8888/corpus?id=<id>&tags=<t1,t2,...>"
     def put(self):
         try:
             doc_id = int(self.get_argument('id'))
@@ -71,15 +72,24 @@ class CorpusHandler(tornado.web.RequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.write(json)
 
+    # curl -X DELETE "http://localhost:8888/corpus?id=<id>&tags=<t1,t2,...>"
     def delete(self):
         try:
             doc_id = int(self.get_argument('id'))
         except ValueError:
             raise tornado.web.HTTPError(400, "Expecting integer value")
 
+        query = {
+            '_id' : doc_id
+        }
+        tags = self.get_argument('tags', None)
+        if tags:
+            tags = map( lambda t: t.lower(), tags.split(','))
+            query['tags'] = tags
+
         c = ClassificationObject.find_by_id(doc_id)
         if c:
-            res = c.remove({ "_id" : doc_id})
+            res = c.remove(query)
         else:
             raise tornado.web.HTTPError(404, "Could not find document with id %i" % doc_id)
 
