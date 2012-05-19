@@ -47,12 +47,13 @@ class CorpusHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json)
 
-    #  curl -X PUT -d "tags=funny" http://localhost:8888/corpus/<id>
-    def put(self, doc_id):
+    #  curl -X PUT -d "tags=funny" http://localhost:8888/corpus?id=<id>
+    # or curl -X PUT "http://localhost:8888/corpus?id=<id>&tags=<t1,t2,...>"
+    def put(self):
         try:
-            doc_id = int(doc_id)
+            doc_id = int(self.get_argument('id'))
         except ValueError:
-            raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(400, "Expecting integer value")
 
         tags = self.get_argument('tags', None)
         if tags:
@@ -64,26 +65,35 @@ class CorpusHandler(tornado.web.RequestHandler):
             c.tags = tags
             c.save()
         else:
-            raise tornado.web.HTTPError(404)
+            raise tornado.web.HTTPError(404, "Could not find document with id %i" % doc_id)
 
-        json = simplejson.dumps({'success': True})
+        json = simplejson.dumps({'success': True, 'message' : "Updated document with id %i" % doc_id,
+            'tags' : tags})
         self.set_header('Content-Type', 'application/json')
         self.write(json)
 
-    def delete(self, doc_id):
+    # curl -X DELETE "http://localhost:8888/corpus?id=<id>&tags=<t1,t2,...>"
+    def delete(self):
         try:
-            doc_id = int(doc_id)
+            doc_id = int(self.get_argument('id'))
         except ValueError:
-            raise tornado.web.HTTPError(400)
+            raise tornado.web.HTTPError(400, "Expecting integer value")
+
+        query = {
+            '_id' : doc_id
+        }
+        tags = self.get_argument('tags', None)
+        if tags:
+            tags = map( lambda t: t.lower(), tags.split(','))
+            query['tags'] = tags
 
         c = ClassificationObject.find_by_id(doc_id)
         if c:
-            res = c.remove({ "_id" : doc_id})
+            res = c.remove(query)
         else:
-            raise tornado.web.HTTPError(404)
+            raise tornado.web.HTTPError(404, "Could not find document with id %i" % doc_id)
 
-        raise tornado.web.HTTPError(200)
-
+        raise tornado.web.HTTPError(200, "Document id %i successfully deleted" % doc_id)
 
 class TagsHandler(tornado.web.RequestHandler):
     def get(self):
@@ -95,7 +105,6 @@ class TagsHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r'/corpus', CorpusHandler), 
-    (r'/corpus/([0-9]+)', CorpusHandler),
     (r'/corpus/tags', TagsHandler),
 ])
 
