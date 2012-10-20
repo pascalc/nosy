@@ -15,7 +15,7 @@ Table of contents
    * naive_bayes.py - A persistent classifier implementing/using naive bayes
    * random_classifier.py - A classifier that emits random classifications, used for testing.
   * open_struct.py - a class that allows arbitrary fields to be set on it, modelled after Ruby's OpenStruct class.
-  * mongo_open_struct.py - An OpenStruct that can be persisted to MongoDB, and also loaded by searching.
+  * mongo_open_struct.py - An OpenStruct that can be persisted to MongoDB, and also loaded by searching.
   * base.py - Base class for both Classification and Classified Objects. Contains logic for normalizing text before insertion into the database.
   * model.py - Defines ClassificationObject and ClassifiedObject, which are MongoOpenStructs. ClassificationObjects are stored in the corpus, before classification, and ClassifiedObjects are ClassificationObjects that have been classified.
   * stream_handler.py - StreamHandler is an abstract class that consumes HTTP streams. TwitterHandler is a StreamHandler that connects to Twitter's API. 
