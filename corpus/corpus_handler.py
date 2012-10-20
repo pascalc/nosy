@@ -72,28 +72,17 @@ class CorpusHandler(tornado.web.RequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.write(json)
 
-    # curl -X DELETE "http://localhost:8888/corpus?id=<id>&tags=<t1,t2,...>"
-    def delete(self):
+    def delete(self, doc_id):
         try:
-            doc_id = int(self.get_argument('id'))
+            doc_id = int(doc_id)
         except ValueError:
-            raise tornado.web.HTTPError(400, "Expecting integer value")
+            raise tornado.web.HTTPError(400)
 
-        query = {
-            '_id' : doc_id
-        }
-        tags = self.get_argument('tags', None)
-        if tags:
-            tags = map( lambda t: t.lower(), tags.split(','))
-            query['tags'] = tags
+        ClassificationObject.remove({'_id' : doc_id})
 
-        c = ClassificationObject.find_by_id(doc_id)
-        if c:
-            res = c.remove(query)
-        else:
-            raise tornado.web.HTTPError(404, "Could not find document with id %i" % doc_id)
-
-        raise tornado.web.HTTPError(200, "Document id %i successfully deleted" % doc_id)
+        json = simplejson.dumps({'success': True})
+        self.set_header('Content-Type', 'application/json')
+        self.write(json)                
 
 class TagsHandler(tornado.web.RequestHandler):
     def get(self):

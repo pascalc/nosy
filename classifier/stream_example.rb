@@ -4,13 +4,6 @@ get '/' do
     erb :index
 end
 
-post '/classify/stream' do
-  current_dir = File.dirname(__FILE__)
-  p = fork { system("python #{current_dir}/tweet_classifier.py -processes 1 -tweets 1000 YAP_nosy yetanotherproject") }
-  Process.detach(p)
-  "ok"
-end
-
 __END__
 
 @@index
@@ -22,7 +15,6 @@ __END__
   <script src="http://nosy.pspace.se:8080/application.js" type="text/javascript" charset="utf-8"></script>
   <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 
-  
   <style type="text/css" media="screen">
     body {
         font-size: 18px;
@@ -51,48 +43,9 @@ __END__
 <body>
 <div id="main-column">
   <h1>Twitter Stream</h1>
-  
-  <form id="stream-form" method="post" action="/classify/stream">
-    
-    <div id="language-selection">
-      <label for="lang">Select language</label>
-      <select name="lang" id="lang">
-        <option value="en" selected="selected">English</option>
-        <option value="se">Swedish</option>
-      </select>
-      <br/>
-      <label for="lang-threshold">Enter threshold (0,1)</label>
-      <input type="text" value="0.5" id="lang-threshold" />
-      <br/>
-      <button id="lang" onclick="addTags(this)">Add language</button>
-    </div>
-    
-    <br/>
-
-    <div id="tags-selection">
-      <label for="tags">Select tag</label>
-      <select name="tags" id="tags">
-        <option value="tag1">Tag1</option>
-        <option value="tag2">Tag2</option>
-      </select>
-      <br/>
-      <label for="tags-threshold">Enter threshold (0,1)</label>
-      <input type="text" value="0.5" id="tags-threshold" />
-      <br/>
-      <button id="tags" onclick="addTags(this)">Add tag</button>
-    </div>
-    <br/>
 
     <input id="start-button" type="submit" value="Start" />
-  </form>
-
-  <h2>Language</h2>
-  <div id="lang-list"><ul class="tags-list"></ul></div>
-  <h2>Tags</h2>
-  <div id="tags-list"><ul class="tags-list"></ul></div>
-  <section id="stream"></section>
-  
-   
+  </form>  
 
   <script type="text/javascript" charset="utf-8">
     function addTags(elem) {
@@ -143,8 +96,7 @@ __END__
       // Juggernaut
       var show = function(data){
         var authorLink = "<a href=http://twitter.com/" + data.author + "><strong>@" + data.author + ":</strong></a>";
-        var geoInfo = " <em>location: (" + data.location + ")</em>";
-        var line = "<p>" + authorLink + data.text + geoInfo + "</p>";
+        var line = "<p>" + authorLink + data.text + "</p>";
         $(line).hide().prependTo("#stream").fadeIn("slow");
       };
 
@@ -156,7 +108,7 @@ __END__
 
       jug.subscribe("nosy", function(data){
         show(data);
-        console.log("Got: " + data);
+        console.log(data);
       });
     });
   </script>

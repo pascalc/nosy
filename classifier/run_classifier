@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python tweet_classifier.py -processes 1 YAP_nosy yetanotherproject
