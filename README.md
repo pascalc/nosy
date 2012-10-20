@@ -25,8 +25,9 @@ Table of contents
   * tweet_classifier.py - Consum JSON from the Twitter stream and saves it in the proper format to the mongoDB.
   * run_classifier.sh - Basch script to run the tweet_classifier.py with correct arguments.
   * stream_example.rb - A example demonstrating real-time publishing using Juggernaut library (JavaScript). NOTE: Deprecated. HTML5 offers server sent event which replicates the Juggernaut functionality.
- * corpus_handler.py - A REST end-point for browsing the corpus
- * tweet_harvester.py - Runs a TwitterHandler and transforms Twitter's JSON into our classification objects.
+ * corpus - Logic for interacting with the corpus
+  * corpus_handler.py - A REST end-point for browsing the corpus
+  * tweet_harvester.py - Runs a TwitterHandler and transforms Twitter's JSON into our classification objects.
  * flicktweet-scraper - Example tweets about movies from www.flicktweets.com. These were used in our demo session.
  * move_reviews - Corpus with positivite and negative move reviews. A script inserts these into the corpus as classification objects. Used in our demo session.
 * setup.py and reinstall - installs the nosy library into Python's site-packages.
